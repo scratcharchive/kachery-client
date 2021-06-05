@@ -31,7 +31,7 @@ def _load_file(uri: str, dest: Union[str, None]=None, local_only: bool=False) ->
 
     # first check the local kachery storage (if kachery storage dir is known)
     if _kachery_storage_dir():
-        if False: # for debugging
+        if True: # for debugging (not loading locally) switch to false
             protocol, algorithm, hash0, additional_path, query = _parse_kachery_uri(uri)
             if protocol != 'sha1':
                 raise Exception(f'Protocol not supported: {protocol}')
