@@ -18,7 +18,7 @@ jinjaroot verify
 # run pre-publish-tasks.sh
 .vscode/tasks/pre-publish-tasks.sh
 
-cd 
+cd .
 
 # remove the dist folder
 rm -rf dist
