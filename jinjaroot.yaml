@@ -5,3 +5,4 @@ projectAuthorEmail: jmagland@flatironinstitute.org
 projectDescription: Python client for kachery
 projectUrl: https://github.com/kacheryhub/kachery-client
 projectBugTrackerUrl: https://github.com/kacheryhub/kachery-client/issues
+pythonPackageDir: .
