@@ -23,14 +23,12 @@ class Feed:
             if subfeed_name is not None:
                 raise Exception('Cannot specify subfeed name in URI when loading feed')
             self._feed_id = feed_id
-            self._feed_node_id = None
             self._is_writeable = None
             self._is_snapshot = False
             self._initialize()
         elif uri.startswith('sha1://'):
             # snapshot
             self._feed_id = None
-            self._feed_node_id = None
             self._is_writeable = False
             self._is_snapshot = True
             self._snapshot_object = _load_json(uri)
@@ -41,34 +39,34 @@ class Feed:
         daemon_url, headers = _daemon_url()
         url = f'{daemon_url}/feed/getFeedInfo'
         x = _http_post_json(url, dict(
-            feedId=self._feed_id,
-            timeoutMsec=(self._timeout_sec if self._timeout_sec is not None else 6) * 1000
+            feedId=self._feed_id
         ), headers=headers)
 
         assert x['success'], f'Unable to initialize feed: {self._feed_id} ({x["error"]})'
-        self._feed_node_id = x['nodeId']
         self._is_writeable = x['isWriteable']
+    @property
     def is_writeable(self):
         return self._is_writeable
-    def get_feed_id(self):
+    @property
+    def feed_id(self):
         return self._feed_id
-    def get_feed_node_id(self):
-        return self._feed_node_id
-    def get_uri(self):
+    @property
+    def uri(self):
         return self._feed_uri
+    @property
     def is_snapshot(self):
         return self._is_snapshot
-    def get_subfeed(self, subfeed_name, position=0):
+    def load_subfeed(self, subfeed_name, position=0):
         return Subfeed(feed=self, subfeed_name=subfeed_name, position=position)
     def delete(self):
-        _delete_feed(self.get_uri())
+        _delete_feed(self.uri)
     def create_snapshot(self, subfeed_names: list):
         subfeeds = dict()
         for subfeed_name in subfeed_names:
-            subfeed = self.get_subfeed(subfeed_name)
+            subfeed = self.load_subfeed(subfeed_name)
             messages = subfeed.get_next_messages(wait_msec=0)
-            subfeeds[subfeed.get_subfeed_hash()] = dict(
-                subfeedHash=subfeed.get_subfeed_hash(),
+            subfeeds[subfeed.subfeed_hash] = dict(
+                subfeedHash=subfeed.subfeed_hash,
                 messages=messages
             )
         snapshot_uri = _store_json(dict(
@@ -114,7 +112,8 @@ class Subfeed:
     def _initialize(self):
         pass
 
-    def get_uri(self):
+    @property
+    def uri(self):
         feed_uri = self._feed_uri
         if feed_uri.startswith('feed://'):
             return f'{self._feed_uri}/{quote(self._subfeed_name_str)}'
@@ -123,24 +122,23 @@ class Subfeed:
         else:
             raise Exception(f'Unexpected feed uri: {feed_uri}')
 
-    def get_position(self):
+    @property
+    def position(self):
         return self._position
     
-    def get_subfeed_name(self):
+    @property
+    def subfeed_name(self):
         return self._subfeed_name
     
-    def get_subfeed_hash(self):
+    @property
+    def subfeed_hash(self):
         return self._subfeed_hash
 
     def set_position(self, position):
         self._position = position
 
-    def get_num_messages(self):
-        print('WARNING: use get_num_local_messages instead of get_num_messages')
-        return self.get_num_local_messages()
-    
     def get_num_local_messages(self):
-        if not self.is_snapshot():
+        if not self.is_snapshot:
             daemon_url, headers = _daemon_url()
             url = f'{daemon_url}/feed/getNumLocalMessages'
             x = _http_post_json(url, dict(
@@ -162,7 +160,7 @@ class Subfeed:
             return []
 
     def get_next_messages(self, *, wait_msec=10, signed=False, max_num_messages=0, advance_position=True):
-        if not self.is_snapshot():
+        if not self.is_snapshot:
             subfeed_watches = {
                 'watch': {
                     'feedId': self._feed_id,
@@ -216,7 +214,7 @@ class Subfeed:
                 while self._relative_position >= len(self._messages):
                     self._load_messages()
                     if self._relative_position >= len(self._messages):
-                        if self._parent.is_snapshot():
+                        if self._parent.is_snapshot:
                             raise StopIteration
                         time.sleep(0.05)
                 self._parent._position = self._parent._position + 1
@@ -224,11 +222,13 @@ class Subfeed:
                 return self._messages[self._relative_position - 1]
         return custom_iterator(parent=self)
     
+    @property
     def is_snapshot(self):
-        return self._feed.is_snapshot()
+        return self._feed.is_snapshot
     
+    @property
     def is_writeable(self):
-        return self._feed.is_writeable()
+        return self._feed.is_writeable
 
     def print_messages(self):
         for msg in self.message_stream():
@@ -242,7 +242,7 @@ class Subfeed:
         self.append_messages([message])
 
     def append_messages(self, messages):
-        if not self.is_writeable():
+        if not self.is_writeable:
             raise Exception('Cannot append messages to a readonly feed')
         # CHAIN:append_messages:step(1)
         daemon_url, headers = _daemon_url()
@@ -254,81 +254,6 @@ class Subfeed:
         ), headers=headers)
         if not x['success']:
             raise Exception(f'Unable to append messages: {x.get("error")}')
-    
-    def submit_message(self, message):
-        self.submit_messages([message])
-
-    def submit_messages(self, messages):
-        if self.is_snapshot():
-            raise Exception('Cannot submit messages to a snapshot')
-        daemon_url, headers = _daemon_url()
-        for message in messages:
-            url = f'{daemon_url}/feed/submitMessage'
-            x = _http_post_json(url, dict(
-                feedId=self._feed_id,
-                subfeedHash=self._subfeed_hash,
-                message=message,
-                timeoutMsec=4000
-            ), headers=headers)
-            if not x['success']:
-                raise Exception(f'Unable to submit message: {x.get("error")}')
-
-    def set_access_rules(self, access_rules):
-        if not self._is_writeable:
-            raise Exception('Cannot set access rules for non-writeable feed')
-        daemon_url, headers = _daemon_url()
-        url = f'{daemon_url}/feed/setAccessRules'
-        x = _http_post_json(url, dict(
-            feedId=self._feed_id,
-            subfeedHash=self._subfeed_hash,
-            accessRules=access_rules
-        ), headers=headers)
-        if not x['success']:
-            raise Exception('Unable to set access rules.')
-    
-    def get_access_rules(self):
-        if not self._is_writeable:
-            raise Exception('Cannot get access rules for non-writeable feed')
-        daemon_url, headers = _daemon_url()
-        url = f'{daemon_url}/feed/getAccessRules'
-        x = _http_post_json(url, dict(
-            feedId=self._feed_id,
-            subfeedHash=self._subfeed_hash
-        ), headers=headers)
-        if not x['success']:
-            raise Exception('Unable to get access rules.')
-        print(x)
-        return x['accessRules']
-    
-    def grant_write_access(self, *, node_id):
-        access_rules = self.get_access_rules()
-        changed = False
-        found = False
-        for r in access_rules['rules']:
-            if r.get('nodeId', None) == node_id:
-                if r.get('write', None) is not True:
-                    changed = True
-                    r['write'] = True
-                found = True
-        if not found:
-            access_rules['rules'].append(dict(
-                nodeId=node_id,
-                write=True
-            ))
-            changed = True
-        if changed:
-            self.set_access_rules(access_rules)
-    
-    def revoke_write_access(self, *, node_id):
-        access_rules = self.get_access_rules()
-        changed = False
-        for r in access_rules['rules']:
-            if r.get('nodeId', None) == node_id:
-                if r.get('write', None) is True:
-                    changed = True
-                    r['write'] = False
-        if changed:
-            self.set_access_rules(access_rules)
 
 def _create_feed(feed_name=None):
     daemon_url, headers = _daemon_url()
@@ -376,7 +301,7 @@ def _get_feed_id(feed_name, *, create=False):
 def _load_subfeed(subfeed_uri):
     feed_id, subfeed_name, position = _parse_feed_uri(subfeed_uri)
     assert subfeed_name is not None, 'No subfeed name found'
-    return Feed('feed://' + feed_id).get_subfeed(subfeed_name=subfeed_name, position=position)
+    return Feed('feed://' + feed_id).load_subfeed(subfeed_name=subfeed_name, position=position)
         
 def _load_feed(feed_name_or_uri, *, timeout_sec: Union[None, float]=None, create=False):
     if feed_name_or_uri.startswith('feed://'):
