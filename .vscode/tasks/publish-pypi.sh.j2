@@ -25,6 +25,8 @@ python setup.py sdist
 # Show size of dist
 du -sh dist
 
+pip install -e .
+
 # Confirm publish
 while true; do
     read -p "Publish version {{ projectVersion }} (y/n)?" yn

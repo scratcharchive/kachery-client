@@ -27,9 +27,11 @@ python setup.py sdist
 # Show size of dist
 du -sh dist
 
+pip install -e .
+
 # Confirm publish
 while true; do
-    read -p "Publish version 0.1.2 (y/n)?" yn
+    read -p "Publish version 1.0.0 (y/n)?" yn
     case $yn in
         [Yy]* ) break;;
         [Nn]* ) echo "aborting"; exit;;
@@ -42,7 +44,7 @@ done
 twine upload ./dist/*
 
 # Tag this commit
-git tag v0.1.2
+git tag v1.0.0
 
-echo "Tagged as v0.1.2"
+echo "Tagged as v1.0.0"
 echo "You should increment the version now in jinjaroot.yaml"
