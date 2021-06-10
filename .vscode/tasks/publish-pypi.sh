@@ -31,7 +31,7 @@ pip install -e .
 
 # Confirm publish
 while true; do
-    read -p "Publish version 1.0.0 (y/n)?" yn
+    read -p "Publish version 1.0.1 (y/n)?" yn
     case $yn in
         [Yy]* ) break;;
         [Nn]* ) echo "aborting"; exit;;
@@ -44,7 +44,7 @@ done
 twine upload ./dist/*
 
 # Tag this commit
-git tag v1.0.0
+git tag v1.0.1
 
-echo "Tagged as v1.0.0"
+echo "Tagged as v1.0.1"
 echo "You should increment the version now in jinjaroot.yaml"
