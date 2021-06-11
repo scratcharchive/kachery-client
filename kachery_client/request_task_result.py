@@ -1,8 +1,8 @@
 from typing import Any, Tuple, Union
-from .._daemon_connection import _daemon_url
-from .._misc import _http_post_json, _http_get_json
+from ._daemon_connection import _daemon_url
+from ._misc import _http_post_json, _http_get_json
 
-class TaskRequest:
+class OutgoingTaskRequest:
     def __init__(self, *, channel: str, task_hash: str, task_result_url: Union[str, None], status: str, error_message: Union[str, None]):
         self._channel = channel
         self._task_hash = task_hash
@@ -51,7 +51,7 @@ class TaskRequest:
             return self.task_result
         return None
 
-def request_task_result(*, task_function_id: str, task_kwargs: dict, channel: str) -> TaskRequest:
+def request_task_result(*, task_function_id: str, task_kwargs: dict, channel: str) -> OutgoingTaskRequest:
     daemon_url, headers = _daemon_url()
     url = f'{daemon_url}/task/requestTaskResult'
     req_data = {
@@ -67,7 +67,7 @@ def request_task_result(*, task_function_id: str, task_kwargs: dict, channel: st
     task_hash = x['taskHash']
     task_result_url = x.get('taskResultUrl', None)
     error_message = x.get('errorMessage', None)
-    return TaskRequest(channel=channel, task_hash=task_hash, task_result_url=task_result_url, status=status, error_message=error_message)
+    return OutgoingTaskRequest(channel=channel, task_hash=task_hash, task_result_url=task_result_url, status=status, error_message=error_message)
     # status = x['status']
     # task_hash = x['taskHash']
     # error_message = x.get('errorMessage', None)

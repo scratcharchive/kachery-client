@@ -37,7 +37,7 @@ def register_task_functions(registered_task_functions: List[RegisteredTaskFuncti
     }
     x = _http_post_json(url, req_data, headers=headers)
     if not x['success']:
-        raise Exception(f'Unable to register task functions')
+        raise Exception(f'Unable to register task functions. Perhaps kachery daemon is not running.')
     requested_tasks = x['requestedTasks']
     for rt in requested_tasks:
         rt_channel_name = rt['channelName']

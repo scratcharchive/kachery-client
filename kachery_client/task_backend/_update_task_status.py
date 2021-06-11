@@ -1,11 +1,11 @@
 import requests
-from typing import Union, cast
+from typing import Any, Union, cast
 import json
 from .._daemon_connection import _daemon_url
 from .._misc import _http_post_json
 
 
-def update_task_status(*, channel: str, task_hash: str, status: str, result: Union[dict, None]=None, error_message: Union[str, None]=None):
+def _update_task_status(*, channel: str, task_hash: str, status: str, result: Union[Any, None]=None, error_message: Union[str, None]=None):
     if status == 'finished':
         if result is None:
             raise Exception('No result provided even though status is finished')
