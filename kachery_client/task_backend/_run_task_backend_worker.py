@@ -33,6 +33,15 @@ def _run_task_backend_worker(pipe_to_parent: Connection, registered_task_functio
 def _register_task_functions(registered_task_functions: List[RegisteredTaskFunction], *, timeout_sec: float):
     daemon_url, headers = _daemon_url()
     url = f'{daemon_url}/task/registerTaskFunctions'
+    # export type RegisteredTaskFunction = {
+    #     channelName: string
+    #     taskFunctionId: TaskFunctionId
+    #     taskFunctionType: TaskFunctionType
+    # }
+    # export interface TaskRegisterTaskFunctionsRequest {
+    #     taskFunctions: RegisteredTaskFunction[]
+    #     timeoutMsec: DurationMsec
+    # }
     x = []
     for a in registered_task_functions:
         x.append({
@@ -45,6 +54,17 @@ def _register_task_functions(registered_task_functions: List[RegisteredTaskFunct
         'timeoutMsec': timeout_sec * 1000
     }
     x = _http_post_json(url, req_data, headers=headers)
+    # export type RequestedTask = {
+    #     channelName: ChannelName
+    #     taskId: TaskId
+    #     taskFunctionId: TaskFunctionId
+    #     kwargs: TaskKwargs
+    #     taskFunctionType: TaskFunctionType
+    # }
+    # export interface TaskRegisterTaskFunctionsResponse {
+    #     requestedTasks: RequestedTask[]
+    #     success: boolean
+    # }
     if not x['success']:
         raise Exception(f'Unable to register task functions. Perhaps kachery daemon is not running.')
     requested_tasks = x['requestedTasks']
