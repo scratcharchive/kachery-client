@@ -5,7 +5,7 @@ from .main import store_file, store_json, store_npy, store_pkl, store_text, link
 from .main import get, set, get_feed_id, get_string
 from .main import watch_for_new_messages
 
-from .request_task_result import request_task_result
+from .request_task import request_task
 from .task_backend.taskfunction import taskfunction
 from .task_backend.run_task_backend import run_task_backend
 

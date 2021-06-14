@@ -3,7 +3,7 @@
 import kachery_client as kc
 import hither2 as hi
 
-@kc.taskfunction('example1a.2')
+@kc.taskfunction('example1a.2', type='pure-calculation')
 def example1a(*, a: str):
     return f'a is {a}'
 
@@ -11,7 +11,7 @@ def example1a(*, a: str):
 def example1b(*, b: str):
     return f'b is {b}'
 
-@kc.taskfunction('example1b.1')
+@kc.taskfunction('example1b.1', type='pure-calculation')
 def example1b_task(*, b: str):
     job = hi.Job(example1b, {'b': b})
     return job

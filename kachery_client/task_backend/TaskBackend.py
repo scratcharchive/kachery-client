@@ -49,7 +49,8 @@ class TaskBackend:
         task_job_manager = self._task_job_manager
         existing_job_for_task = task_job_manager.get_existing_job_for_task(requested_task)
         function_id = requested_task.registered_task_function.task_function_id
-        print(f'Task requested: {function_id}')
+        function_type = requested_task.registered_task_function.task_function_type
+        print(f'Task requested: {function_id} ({function_type})')
         if existing_job_for_task is not None:
             return
         try:

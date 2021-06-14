@@ -16,8 +16,8 @@ def run_task_backend(*, channels: List[str], task_function_ids: List[str]):
         if f is None:
             raise Exception(f'Task function not found: {function_id}')
         for channel in channels:
-            print(f'Registering task for channel {channel}: {function_id}')
-            x = RegisteredTaskFunction(task_function_id=function_id, channel=channel)
+            print(f'Registering task for channel {channel}: {function_id} ({f._task_function_type})')
+            x = RegisteredTaskFunction(task_function_id=function_id, task_function_type=f._task_function_type, channel=channel)
             task_functions.append(x)
     function_ids_not_included = [id for id in all_taskfunction_ids() if id not in task_function_ids]
     if len(function_ids_not_included):

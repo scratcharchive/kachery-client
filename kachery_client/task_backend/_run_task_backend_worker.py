@@ -37,7 +37,8 @@ def _register_task_functions(registered_task_functions: List[RegisteredTaskFunct
     for a in registered_task_functions:
         x.append({
             'channelName': a.channel,
-            'taskFunctionId': a.task_function_id
+            'taskFunctionId': a.task_function_id,
+            'taskFunctionType': a.task_function_type
         })
     req_data = {
         'taskFunctions': x,
@@ -50,14 +51,18 @@ def _register_task_functions(registered_task_functions: List[RegisteredTaskFunct
     ret: List[RequestedTask] = []
     for rt in requested_tasks:
         rt_channel_name = rt['channelName']
-        rt_task_hash = rt['taskHash']
+        rt_task_id = rt['taskId']
         rt_task_function_id = rt['taskFunctionId']
+        rt_task_function_type = rt['taskFunctionType']
         rt_task_kwargs = rt['kwargs']
         for x in registered_task_functions:
             if x.channel == rt_channel_name and x.task_function_id == rt_task_function_id:
-                ret.append(RequestedTask(
-                    registered_task_function=x,
-                    kwargs=rt_task_kwargs,
-                    task_hash=rt_task_hash
-                ))
+                if x.task_function_type == rt_task_function_type:
+                    ret.append(RequestedTask(
+                        registered_task_function=x,
+                        kwargs=rt_task_kwargs,
+                        task_id=rt_task_id
+                    ))
+                else:
+                    print(f'Warning: mismatch in task function type for {rt_task_function_id}: {x.task_function_type} <> {rt_task_function_type}')
     return ret

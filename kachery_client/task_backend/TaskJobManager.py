@@ -22,12 +22,12 @@ class TaskJobManager:
         import hither2 as hi # Only import hither if we have a hither job
         if not isinstance(job, hi.Job):
             raise Exception('Not a hither job.')
-        if requested_task.task_hash in self._task_jobs:
+        if requested_task.task_id in self._task_jobs:
             raise Exception('Unexpected. Already have job with task hash.')
-        self._task_jobs[requested_task.task_hash] = TaskJob(requested_task=requested_task, job=job)
+        self._task_jobs[requested_task.task_id] = TaskJob(requested_task=requested_task, job=job)
     def get_existing_job_for_task(self, requested_task: RequestedTask):
-        if requested_task.task_hash in self._task_jobs:
-            return self._task_jobs[requested_task.task_hash].job
+        if requested_task.task_id in self._task_jobs:
+            return self._task_jobs[requested_task.task_id].job
         else:
             return None
     def process_events(self):
