@@ -57,6 +57,7 @@ def _register_task_functions(registered_task_functions: List[RegisteredTaskFunct
     # export type RequestedTask = {
     #     channelName: ChannelName
     #     taskId: TaskId
+    #     taskHash: Sha1Hash
     #     taskFunctionId: TaskFunctionId
     #     kwargs: TaskKwargs
     #     taskFunctionType: TaskFunctionType
@@ -72,6 +73,7 @@ def _register_task_functions(registered_task_functions: List[RegisteredTaskFunct
     for rt in requested_tasks:
         rt_channel_name = rt['channelName']
         rt_task_id = rt['taskId']
+        rt_task_hash = rt['taskHash']
         rt_task_function_id = rt['taskFunctionId']
         rt_task_function_type = rt['taskFunctionType']
         rt_task_kwargs = rt['kwargs']
@@ -81,7 +83,8 @@ def _register_task_functions(registered_task_functions: List[RegisteredTaskFunct
                     ret.append(RequestedTask(
                         registered_task_function=x,
                         kwargs=rt_task_kwargs,
-                        task_id=rt_task_id
+                        task_id=rt_task_id,
+                        task_hash=rt_task_hash
                     ))
                 else:
                     print(f'Warning: mismatch in task function type for {rt_task_function_id}: {x.task_function_type} <> {rt_task_function_type}')

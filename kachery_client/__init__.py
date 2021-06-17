@@ -14,3 +14,5 @@ from ._temporarydirectory import TemporaryDirectory
 from ._shellscript import ShellScript
 
 from .cli import cli
+
+from ._feeds import Feed, Subfeed

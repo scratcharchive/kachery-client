@@ -58,6 +58,29 @@ def cat_file(uri, start, end):
         sys.stdout = old_stdout
         kc.load_bytes(uri=uri, start=start, end=end, write_to_stdout=True)
 
+@click.command(help="Generate and print a random node ID with an associated private key")
+def generate_node_id():
+    try:
+        import ed25519
+    except:
+        raise Exception('Unable to import ed25519. Use pip install ed25519.')
+    privKey, pubKey = ed25519.create_keypair()
+    private_key_hex = privKey.to_ascii(encoding='hex').decode('utf-8')
+    public_key_hex = pubKey.to_ascii(encoding='hex').decode('utf-8')
+    
+    # Let's test it
+    msg = b'Message for Ed25519 signing'
+    signature = privKey.sign(msg, encoding='hex') # signature (64 bytes)
+    try:
+        pubKey.verify(signature, msg, encoding='hex')
+        # The signature is valid
+    except:
+        print("Invalid signature!")
+    
+    print(f'Random node ID: {public_key_hex}')
+    print(f'Corresponding private key (hex): {private_key_hex}')
+    
+
 @click.command(help="Display kachery_client version and exit.")
 def version():
     click.echo(f"This is kachery_client version {kc.__version__}")
@@ -68,3 +91,4 @@ cli.add_command(load_file)
 cli.add_command(store_file)
 cli.add_command(link_file)
 cli.add_command(version)
+cli.add_command(generate_node_id)
