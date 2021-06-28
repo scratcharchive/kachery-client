@@ -108,7 +108,11 @@ def _link_file(path: str, basename: Union[str, None]=None) -> str:
         return f'sha1://{sha1}/{basename}'
 
 def _get_file_size_using_system_call(path: str):
-    return int(subprocess.check_output(['stat', '-c%s', path]))
+    import sys
+    if sys.platform == 'darwin':
+        return int(subprocess.check_output(['stat', '-f', '%z', path]))
+    else:
+        return int(subprocess.check_output(['stat', '-c%s', path]))
 
 def _add_read_permissions(fname: str):
     st = os.stat(fname)
