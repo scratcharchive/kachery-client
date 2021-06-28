@@ -32,4 +32,4 @@ class RequestedTask:
         return self._status
     def update_status(self, *, status: str, error_message: Union[str, None]=None, result: Union[Any, None]=None):
         self._status = status
-        _update_task_status(channel=self.registered_task_function.channel, task_id=self.task_id, task_hash=self.task_hash, task_function_type=self.task_function_type, status=status, result=result, error_message=error_message)
+        _update_task_status(channel=self.registered_task_function.channel, task_id=self.task_id, task_function_id=self._registered_task_function.task_function_id, task_hash=self.task_hash, task_function_type=self.task_function_type, status=status, result=result, error_message=error_message)

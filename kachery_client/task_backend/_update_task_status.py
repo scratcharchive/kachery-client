@@ -5,7 +5,7 @@ from .._daemon_connection import _daemon_url
 from .._misc import _http_post_json
 
 
-def _update_task_status(*, channel: str, task_id: str, task_hash: str, task_function_type: str, status: str, result: Union[Any, None]=None, error_message: Union[str, None]=None):
+def _update_task_status(*, channel: str, task_id: str, task_function_id: str, task_hash: str, task_function_type: str, status: str, result: Union[Any, None]=None, error_message: Union[str, None]=None):
     if status == 'finished':
         if task_function_type in ['pure-calculation', 'query']:
             if result is None:
@@ -30,6 +30,8 @@ def _update_task_status(*, channel: str, task_id: str, task_hash: str, task_func
         'taskId': task_id,
         'status': status
     }
+    if status == 'error':
+        print(f'Error in task {task_function_id}: {error_message}')
     if error_message is not None:
         req_data['errorMessage'] = error_message
     x = _http_post_json(url, req_data, headers=headers)

@@ -39,6 +39,7 @@ class TaskJobManager:
             requested_task = v.requested_task
             if job.status != requested_task.status:
                 if job.status == 'error':
+                    print(job.print_console())
                     error_message = str(job.result.error)
                 else:
                     error_message = None
