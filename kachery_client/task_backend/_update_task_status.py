@@ -57,6 +57,7 @@ def _create_signed_task_result_upload_url(*, channel: str, task_hash: str, size:
     #     signedUrl: UrlString
     # }
     if not x['success']:
+        print(x)
         raise Exception(f'Unable to create signed task result upload url')
     return cast(str, x['signedUrl'])
 

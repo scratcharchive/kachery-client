@@ -77,7 +77,16 @@ class TaskBackend:
                 requested_task.update_status(status='error', error_message=error_message)
                 return
             print(f'Finished task: {function_id}')
-            requested_task.update_status(status='finished', result=task_output)
+            try:
+                requested_task.update_status(status='finished', result=task_output)
+            except Exception as e:
+                error_message = f'Error updating task status to finished: {e}'
+                print(f'Error in {function_id}: {error_message}')
+                try:
+                    requested_task.update_status(status='error', error_message=error_message)
+                except:
+                    print('Unable to update task status to error.')
+                return
 
 _running_task_backends: Dict[str, TaskBackend] = {}
 

@@ -1,6 +1,7 @@
 import time
 from multiprocessing.connection import Connection
 from typing import List, Protocol
+from .._daemon_connection import _client_auth_code_info # a hack, see below
 
 from .RegisteredTaskFunction import RegisteredTaskFunction
 from .RequestedTask import RequestedTask
@@ -31,29 +32,34 @@ def _run_task_backend_worker(pipe_to_parent: Connection, registered_task_functio
         time.sleep(0.1)
 
 def _register_task_functions(registered_task_functions: List[RegisteredTaskFunction], *, timeout_sec: float):
-    daemon_url, headers = _daemon_url()
-    url = f'{daemon_url}/task/registerTaskFunctions'
-    # export type RegisteredTaskFunction = {
-    #     channelName: string
-    #     taskFunctionId: TaskFunctionId
-    #     taskFunctionType: TaskFunctionType
-    # }
-    # export interface TaskRegisterTaskFunctionsRequest {
-    #     taskFunctions: RegisteredTaskFunction[]
-    #     timeoutMsec: DurationMsec
-    # }
-    x = []
-    for a in registered_task_functions:
-        x.append({
-            'channelName': a.channel,
-            'taskFunctionId': a.task_function_id,
-            'taskFunctionType': a.task_function_type
-        })
-    req_data = {
-        'taskFunctions': x,
-        'timeoutMsec': timeout_sec * 1000
-    }
-    x = _http_post_json(url, req_data, headers=headers)
+    failed_once = False
+    while True:
+        x = []
+        for a in registered_task_functions:
+            x.append({
+                'channelName': a.channel,
+                'taskFunctionId': a.task_function_id,
+                'taskFunctionType': a.task_function_type
+            })
+        req_data = {
+            'taskFunctions': x,
+            'timeoutMsec': timeout_sec * 1000
+        }
+
+        try:
+            daemon_url, headers = _daemon_url() # exception may be here
+            url = f'{daemon_url}/task/registerTaskFunctions'
+            x = _http_post_json(url, req_data, headers=headers) # or exception may be here
+            if failed_once:
+                print('Connection to daemon has been restored')
+            break
+        except:
+            print(f'Error registering tasks with kachery daemon. Perhaps kachery daemon is not running.')
+            print(f'Will retry in 10 seconds')
+            failed_once = True
+            time.sleep(10)
+            _client_auth_code_info['timestamp'] = 0 # a hack to force re-reading of client auth code
+            
     # export type RequestedTask = {
     #     channelName: ChannelName
     #     taskId: TaskId
@@ -67,7 +73,8 @@ def _register_task_functions(registered_task_functions: List[RegisteredTaskFunct
     #     success: boolean
     # }
     if not x['success']:
-        raise Exception(f'Unable to register task functions. Perhaps kachery daemon is not running.')
+        print(x)
+        raise Exception(f'Error registering task functions.')
     requested_tasks = x['requestedTasks']
     ret: List[RequestedTask] = []
     for rt in requested_tasks:
