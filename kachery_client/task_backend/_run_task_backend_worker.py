@@ -1,3 +1,4 @@
+import sys
 import time
 from multiprocessing.connection import Connection
 from typing import List, Protocol
@@ -53,7 +54,10 @@ def _register_task_functions(registered_task_functions: List[RegisteredTaskFunct
             if failed_once:
                 print('Connection to daemon has been restored')
             break
-        except:
+        except Exception as e:
+            if isinstance(e, KeyboardInterrupt):
+                print('Keyboard interrupt')
+                raise
             print(f'Error registering tasks with kachery daemon. Perhaps kachery daemon is not running.')
             print(f'Will retry in 10 seconds')
             failed_once = True
