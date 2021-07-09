@@ -1,6 +1,8 @@
 import requests
 from typing import Any, Union, cast
 import json
+
+import simplejson
 from .._daemon_connection import _daemon_url
 from .._misc import _http_post_json
 
@@ -10,7 +12,8 @@ def _update_task_status(*, channel: str, task_id: str, task_function_id: str, ta
         if task_function_type in ['pure-calculation', 'query']:
             if result is None:
                 raise Exception('No result provided for pure calculation even though status is finished')
-            result_content = json.dumps(result).encode()
+            result_content = simplejson.dumps(result, separators=(',', ':'), indent=None, allow_nan=False).encode()
+            # result_content = json.dumps(result, allow_nan=False).encode()
             signed_url = _create_signed_task_result_upload_url(channel=channel, task_hash=task_hash, size=len(result_content))
             _http_put_bytes(signed_url, result_content)
     else:

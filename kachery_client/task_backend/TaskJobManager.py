@@ -39,11 +39,13 @@ class TaskJobManager:
             requested_task = v.requested_task
             if job.status != requested_task.status:
                 if job.status == 'error':
+                    assert job.result is not None
                     print(job.print_console())
                     error_message = str(job.result.error)
                 else:
                     error_message = None
                 if job.status == 'finished':
+                    assert job.result is not None
                     result = job.result.return_value
                 else:
                     result = None
@@ -55,4 +57,3 @@ class TaskJobManager:
         if has_jobs:
             import hither2 as hi # Only import hither if we have a hither job
             hi.wait(0)
-            

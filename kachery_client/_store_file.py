@@ -137,7 +137,7 @@ def _store_text(text: str, basename: Union[str, None]=None) -> str:
 def _store_json(object: Union[dict, list, int, float, str], basename: Union[str, None]=None, separators=(',', ':'), indent=None) -> str:
     if basename is None:
         basename = 'file.json'
-    txt = simplejson.dumps(object, separators=separators, indent=indent)
+    txt = simplejson.dumps(object, separators=separators, indent=indent, allow_nan=False)
     return _store_text(text=txt, basename=basename)
 
 def _store_npy(array: np.ndarray, basename: Union[str, None]=None) -> str:
