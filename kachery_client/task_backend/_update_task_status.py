@@ -39,7 +39,10 @@ def _update_task_status(*, channel: str, task_id: str, task_function_id: str, ta
         req_data['errorMessage'] = error_message
     x = _http_post_json(url, req_data, headers=headers)
     if not x['success']:
-        raise Exception(f'Unable to update task status')
+        print(x)
+        print('ERRMSG', error_message)
+        print(f'WARNING: unexpected problem updating task status for task: {task_function_id} (status={status})')
+        # raise Exception(f'Unable to update task status')
 
 def _create_signed_task_result_upload_url(*, channel: str, task_hash: str, size: int):
     daemon_url, headers = _daemon_url()
