@@ -4,11 +4,25 @@ import sys
 import click
 
 import kachery_client as kc
+from ._daemon_connection import _get_node_id, _read_client_auth_code
 
 
 @click.group(help="Kachery peer-to-peer command-line client")
 def cli():
     pass
+
+@click.command(help="Get info about the kachery daemon")
+def info():
+    node_id = _get_node_id()
+    try:
+        client_auth_code = _read_client_auth_code()
+    except:
+        client_auth_code = None
+    print(f'Node ID: {node_id}')
+    if client_auth_code:
+        print('You have access to this daemon')
+    else:
+        print('You do not have access to this daemon')
 
 @click.command(help="Load or download a file.")
 @click.argument('uri')
@@ -90,5 +104,6 @@ cli.add_command(cat_file)
 cli.add_command(load_file)
 cli.add_command(store_file)
 cli.add_command(link_file)
+cli.add_command(info)
 cli.add_command(version)
 cli.add_command(generate_node_id)

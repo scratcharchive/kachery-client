@@ -9,6 +9,7 @@ setuptools.setup(
         "bin/kachery-load",
         "bin/kachery-store",
         "bin/kachery-link",
+        "bin/kachery-info",
         "bin/kachery-generate-node-id"
     ],
     install_requires=[

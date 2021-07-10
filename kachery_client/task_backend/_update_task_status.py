@@ -40,7 +40,6 @@ def _update_task_status(*, channel: str, task_id: str, task_function_id: str, ta
     x = _http_post_json(url, req_data, headers=headers)
     if not x['success']:
         print(x)
-        print('ERRMSG', error_message)
         print(f'WARNING: unexpected problem updating task status for task: {task_function_id} (status={status})')
         # raise Exception(f'Unable to update task status')
 
