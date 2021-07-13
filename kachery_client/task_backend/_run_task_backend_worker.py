@@ -47,10 +47,16 @@ def _register_task_functions(registered_task_functions: List[RegisteredTaskFunct
             'timeoutMsec': timeout_sec * 1000
         }
 
+        success_false_exception = False
         try:
             daemon_url, headers = _daemon_url() # exception may be here
             url = f'{daemon_url}/task/registerTaskFunctions'
             x = _http_post_json(url, req_data, headers=headers) # or exception may be here
+            
+            if not x['success']:
+                success_false_exception = True
+                print(x)
+                raise Exception(f'Error registering task functions.') # or exception may be here
             if failed_once:
                 print('Connection to daemon has been restored')
             break
@@ -58,7 +64,10 @@ def _register_task_functions(registered_task_functions: List[RegisteredTaskFunct
             if isinstance(e, KeyboardInterrupt):
                 print('Keyboard interrupt')
                 raise
-            print(f'Error registering tasks with kachery daemon. Perhaps kachery daemon is not running.')
+            if success_false_exception:
+                print(f'Unexpected error registering tasks with kachery daemon.')
+            else:
+                print(f'Error registering tasks with kachery daemon. Perhaps kachery daemon is not running.')
             print(f'Will retry in 10 seconds')
             failed_once = True
             time.sleep(10)
@@ -76,9 +85,6 @@ def _register_task_functions(registered_task_functions: List[RegisteredTaskFunct
     #     requestedTasks: RequestedTask[]
     #     success: boolean
     # }
-    if not x['success']:
-        print(x)
-        raise Exception(f'Error registering task functions.')
     requested_tasks = x['requestedTasks']
     ret: List[RequestedTask] = []
     for rt in requested_tasks:

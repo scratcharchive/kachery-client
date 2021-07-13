@@ -22,6 +22,11 @@
             "label": "Install git hooks",
             "type": "shell",
             "command": "bash -ic .vscode/tasks/install-git-hooks.sh"
+        },
+        {
+            "label": "Git update",
+            "type": "shell",
+            "command": "bash -ic .vscode/tasks/git_update.sh"
         }
     ]
 }

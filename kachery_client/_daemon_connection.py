@@ -32,6 +32,8 @@ def _read_client_auth_code():
             client_auth_code = f.read()
     except:
         raise Exception(f'Unable to read client auth file. Perhaps you do not have permission to access this daemon.')
+    if not client_auth_code:
+        raise Exception('Unexpected problem reading client auth file. The content is empty.')
     return client_auth_code
 
 
@@ -121,7 +123,7 @@ def _kachery_temp_dir() -> str:
     if d is not None:
         return _create_if_needed(d)
     if _kachery_offline_storage_dir_env_is_set():
-        return _create_if_needed(os.getenv('KACHERY_OFFLINE_STORAGE_DIR') + '/kachery-tmp')
+        return _create_if_needed(os.getenv('KACHERY_OFFLINE_STORAGE_DIR', '') + '/kachery-tmp')
     else:
         return _create_if_needed(tempfile.gettempdir() + '/kachery-tmp')
 
