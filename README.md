@@ -28,6 +28,7 @@ kachery-cat # Load a file and print the content
 kachery-load # Load a file locally, or download from the kachery network
 kachery-store # Store a file locally (it can then become part of the kachery network)
 kachery-link # Like store, except creates a link to the file rather than copying
+kachery-client info # Prints the node ID and indicates whether the client has access to the daemon
 ```
 
 ## Python usage

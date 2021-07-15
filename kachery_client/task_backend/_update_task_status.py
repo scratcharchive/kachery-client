@@ -10,12 +10,17 @@ from .._misc import _http_post_json
 def _update_task_status(*, channel: str, task_id: str, task_function_id: str, task_hash: str, task_function_type: str, status: str, result: Union[Any, None]=None, error_message: Union[str, None]=None):
     if status == 'finished':
         if task_function_type in ['pure-calculation', 'query']:
-            if result is None:
-                raise Exception('No result provided for pure calculation even though status is finished')
-            result_content = simplejson.dumps(result, separators=(',', ':'), indent=None, allow_nan=False).encode()
-            # result_content = json.dumps(result, allow_nan=False).encode()
-            signed_url = _create_signed_task_result_upload_url(channel=channel, task_hash=task_hash, size=len(result_content))
-            _http_put_bytes(signed_url, result_content)
+            try:
+                if result is None:
+                    raise Exception('No result provided for pure calculation even though status is finished')
+                result_content = simplejson.dumps(result, separators=(',', ':'), indent=None, allow_nan=False).encode()
+                # result_content = json.dumps(result, allow_nan=False).encode()
+                signed_url = _create_signed_task_result_upload_url(channel=channel, task_hash=task_hash, size=len(result_content))
+                _http_put_bytes(signed_url, result_content)
+            except Exception as e:
+                error_message = f'Problem updating task status to finished: {str(e)}'
+                _update_task_status(channel=channel, task_id=task_id, task_function_id=task_function_id, task_hash=task_hash, task_function_type=task_function_type, status='error', result=None, error_message=error_message)
+                return
     else:
         if result is not None:
             raise Exception('Result is not none even though status is not finished')
