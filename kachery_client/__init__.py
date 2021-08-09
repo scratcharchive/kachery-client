@@ -4,6 +4,7 @@ from .main import create_feed
 from .main import store_file, store_json, store_npy, store_pkl, store_text, link_file
 from .main import get, set, get_feed_id, get_string
 from .main import watch_for_new_messages
+from .main import parse_uri, build_uri
 
 from .request_task import request_task
 from .task_backend.taskfunction import taskfunction
