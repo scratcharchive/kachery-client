@@ -9,6 +9,7 @@ from ._mutables import (_get, _set, _delete)
 from ._load_file import _load_file, _load_bytes, _load_text, _load_json, _load_npy, _load_pkl
 from ._store_file import _store_file, _store_text, _store_json, _store_npy, _store_pkl, _link_file
 from ._daemon_connection import _get_node_id
+from ._uri_handling import KacheryUri, _build_uri, _parse_uri
 
 def load_file(
     uri: str,
@@ -281,3 +282,28 @@ def delete(key: Union[str, dict, list], value: Union[str, dict, list]):
         None
     """
     return _delete(key=key)
+
+################################################
+
+def parse_uri(uri: str):
+    """Convert a URI into an instance of a class with semantically meaningful
+    members.
+
+    Args:
+        uri (str): URI to parse.
+
+    Returns:
+        KacheryUri: A meaningfully parsed representation of the URI.
+    """
+    return _parse_uri(uri=uri)
+
+def build_uri(uri_object: KacheryUri):
+    """Returns a string URI from the named component elements.
+
+    Args:
+        uri_object (KacheryUri): Object representation of the URI.
+
+    Returns:
+        str: A usable URI string.
+    """    
+    return _build_uri(uri_object=uri_object)
