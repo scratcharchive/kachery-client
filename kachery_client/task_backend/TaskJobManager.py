@@ -1,3 +1,4 @@
+import traceback
 from typing import Any, Dict, List
 from .RequestedTask import RequestedTask
 
@@ -56,4 +57,8 @@ class TaskJobManager:
             del self._task_jobs[k]
         if has_jobs:
             import hither2 as hi # Only import hither if we have a hither job
-            hi.wait(0)
+            try:
+                hi.wait(0)
+            except Exception:
+                print("Exception in hi.wait(0)")
+                print(traceback.format_exc())

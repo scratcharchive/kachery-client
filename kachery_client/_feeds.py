@@ -10,6 +10,7 @@ from ._load_file import _load_json
 from ._store_file import _store_json
 from ._daemon_connection import _daemon_url
 from ._misc import _http_post_json, _http_get_json
+from ._mutables import _get, _set
 
 
 class Feed:
@@ -259,12 +260,15 @@ def _create_feed(feed_name=None):
     daemon_url, headers = _daemon_url()
     url = f'{daemon_url}/feed/createFeed'
     req_data = dict()
-    if feed_name is not None:
-        req_data['feedName'] = feed_name
+    # if feed_name is not None:
+    #     req_data['feedName'] = feed_name
     x = _http_post_json(url, req_data, headers=headers)
     if not x['success']:
         raise Exception(f'Unable to create feed: {feed_name}')
-    return _load_feed('feed://' + x['feedId'])
+    feed_id = x['feedId']
+    if feed_name is not None:
+        _set({'type': 'feed_id_for_name', 'feed_name': feed_name}, feed_id)
+    return _load_feed('feed://' + feed_id)
 
 def _delete_feed(feed_name_or_uri):
     if feed_name_or_uri.startswith('feed://'):
@@ -285,18 +289,24 @@ def _delete_feed(feed_name_or_uri):
         _delete_feed(f'feed://{feed_id}')
 
 def _get_feed_id(feed_name, *, create=False):
-    daemon_url, headers = _daemon_url()
-    url = f'{daemon_url}/feed/getFeedId'
-    x = _http_post_json(url, dict(
-        feedName=feed_name
-    ), headers=headers)
-    if not x['success']:
+    feed_id = _get({'type': 'feed_id_for_name', 'feed_name': feed_name})
+    if feed_id is None:
         if create:
             return _create_feed(feed_name)._feed_id
         else:
             raise Exception(f'Unable to load feed with name: {feed_name}')
-    feed_id = x['feedId']
-    return feed_id
+    # daemon_url, headers = _daemon_url()
+    # url = f'{daemon_url}/feed/getFeedId'
+    # x = _http_post_json(url, dict(
+    #     feedName=feed_name
+    # ), headers=headers)
+    # if not x['success']:
+    #     if create:
+    #         return _create_feed(feed_name)._feed_id
+    #     else:
+    #         raise Exception(f'Unable to load feed with name: {feed_name}')
+    # feed_id = x['feedId']
+    # return feed_id
 
 def _load_subfeed(subfeed_uri):
     feed_id, subfeed_name, position = _parse_feed_uri(subfeed_uri)

@@ -1,13 +1,12 @@
-import requests
 from typing import Any, Union, cast
 import json
 
-import simplejson
 from .._daemon_connection import _daemon_url
 from .._misc import _http_post_json
 
 
 def _update_task_status(*, channel: str, task_id: str, task_function_id: str, task_hash: str, task_function_type: str, status: str, result: Union[Any, None]=None, error_message: Union[str, None]=None):
+    import simplejson
     if status == 'finished':
         if task_function_type in ['pure-calculation', 'query']:
             try:
@@ -72,6 +71,10 @@ def _create_signed_task_result_upload_url(*, channel: str, task_hash: str, size:
     return cast(str, x['signedUrl'])
 
 def _http_put_bytes(url: str, data: bytes):
+    try:
+        import requests
+    except:
+        raise Exception('Error importing requests ****')
     headers = {
         'Content-Type': 'application/octet-stream',
         'Content-Length': f'{len(data)}'

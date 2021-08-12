@@ -1,10 +1,8 @@
 import os
 import time
 import json
-from typing import Dict, Iterable, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, Optional, Tuple, Union
 from urllib.parse import parse_qs
-
-from requests.models import Response
 
 def _parse_kachery_uri(uri: str) -> Tuple[str, str, str, str, dict]:
     listA = uri.split('?')
@@ -50,7 +48,7 @@ def _http_post_json(url: str, data: dict, verbose: Optional[bool] = None, header
     finally:
         req.close()
 
-def _http_post_json_receive_json_socket(url: str, data: dict, verbose: Optional[bool] = None, headers: dict = {}) -> Tuple[Iterable[dict], Response]:
+def _http_post_json_receive_json_socket(url: str, data: dict, verbose: Optional[bool] = None, headers: dict = {}) -> Tuple[Iterable[dict], Any]:
     timer = time.time()
     if verbose is None:
         verbose = (os.environ.get('HTTP_VERBOSE', '') == 'TRUE')

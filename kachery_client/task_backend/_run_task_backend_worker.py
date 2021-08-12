@@ -2,7 +2,7 @@ import sys
 import time
 from multiprocessing.connection import Connection
 from typing import List, Protocol
-from .._daemon_connection import _client_auth_code_info # a hack, see below
+from .._daemon_connection import _client_auth_code_info, _reset_client_auth_code # a hack, see below
 
 from .RegisteredTaskFunction import RegisteredTaskFunction
 from .RequestedTask import RequestedTask
@@ -58,6 +58,7 @@ def _register_task_functions(registered_task_functions: List[RegisteredTaskFunct
                 print(x)
                 raise Exception(f'Error registering task functions.') # or exception may be here
             if failed_once:
+                _reset_client_auth_code() # force re-reading of client auth code
                 print('Connection to daemon has been restored')
             break
         except Exception as e:
@@ -71,7 +72,7 @@ def _register_task_functions(registered_task_functions: List[RegisteredTaskFunct
             print(f'Will retry in 10 seconds')
             failed_once = True
             time.sleep(10)
-            _client_auth_code_info['timestamp'] = 0 # a hack to force re-reading of client auth code
+            _reset_client_auth_code() # force re-reading of client auth code
             
     # export type RequestedTask = {
     #     channelName: ChannelName

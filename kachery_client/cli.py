@@ -1,8 +1,8 @@
 import os
 import sys
 
-import click
 
+import click
 import kachery_client as kc
 from ._daemon_connection import _get_node_id, _read_client_auth_code
 

@@ -15,6 +15,10 @@ _client_auth_code_info = {
     'code': ''
 }
 
+def _reset_client_auth_code():
+    _client_auth_code_info['timestamp'] = 0
+    _client_auth_code_info['code'] = ''
+
 def _get_client_auth_code():
     elapsed = time.time() - _client_auth_code_info['timestamp']
     if elapsed > 60:
