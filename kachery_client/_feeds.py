@@ -290,11 +290,12 @@ def _delete_feed(feed_name_or_uri):
 
 def _get_feed_id(feed_name, *, create=False):
     feed_id = _get({'type': 'feed_id_for_name', 'feed_name': feed_name})
-    if feed_id is None:
+    if (feed_id is None) or (not isinstance(feed_id, str)):
         if create:
             return _create_feed(feed_name)._feed_id
         else:
             raise Exception(f'Unable to load feed with name: {feed_name}')
+    return feed_id
     # daemon_url, headers = _daemon_url()
     # url = f'{daemon_url}/feed/getFeedId'
     # x = _http_post_json(url, dict(
