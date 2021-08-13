@@ -17,12 +17,14 @@ _client_auth_code_info = {
 
 def _reset_client_auth_code():
     _client_auth_code_info['timestamp'] = 0
-    _client_auth_code_info['code'] = ''
 
 def _get_client_auth_code():
     elapsed = time.time() - _client_auth_code_info['timestamp']
     if elapsed > 60:
-        _client_auth_code_info['code'] = _read_client_auth_code()
+        code = _read_client_auth_code()
+        if _client_auth_code_info['code'] and (code != _client_auth_code_info['code']):
+            print(f'# Got new client auth code: {code}')
+        _client_auth_code_info['code'] = code
         _client_auth_code_info['timestamp'] = time.time()
     return _client_auth_code_info['code']
 
