@@ -9,6 +9,7 @@ from .main import parse_uri, build_uri
 from .request_task import request_task
 from .task_backend.taskfunction import taskfunction
 from .task_backend.run_task_backend import run_task_backend
+from .task_backend._run_task import _run_task
 
 from ._daemon_connection import _kachery_storage_dir, _kachery_temp_dir
 from ._temporarydirectory import TemporaryDirectory

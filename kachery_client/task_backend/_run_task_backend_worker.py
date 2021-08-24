@@ -1,7 +1,7 @@
 import sys
 import time
 from multiprocessing.connection import Connection
-from typing import List, Protocol
+from typing import List, Protocol, Union
 from .._daemon_connection import _client_auth_code_info, _reset_client_auth_code # a hack, see below
 
 from .RegisteredTaskFunction import RegisteredTaskFunction
@@ -11,7 +11,7 @@ from .._daemon_connection import _daemon_url
 from .._misc import _http_post_json
 
 
-def _run_task_backend_worker(pipe_to_parent: Connection, registered_task_functions: List[RegisteredTaskFunction]):
+def _run_task_backend_worker(pipe_to_parent: Connection, registered_task_functions: List[RegisteredTaskFunction], backend_id: Union[str, None]):
     while True:
         while pipe_to_parent.poll():
             x = pipe_to_parent.recv()
@@ -24,7 +24,7 @@ def _run_task_backend_worker(pipe_to_parent: Connection, registered_task_functio
             else:
                 print(x)
                 raise Exception('Unexpected message in _run_task_backend_worker')
-        requested_tasks = _register_task_functions(registered_task_functions, timeout_sec=4)
+        requested_tasks = _register_task_functions(registered_task_functions, timeout_sec=4, backend_id=backend_id)
         for requested_task in requested_tasks:
             pipe_to_parent.send({
                 'type': 'request_task',
@@ -32,18 +32,19 @@ def _run_task_backend_worker(pipe_to_parent: Connection, registered_task_functio
             })
         time.sleep(0.1)
 
-def _register_task_functions(registered_task_functions: List[RegisteredTaskFunction], *, timeout_sec: float):
+def _register_task_functions(registered_task_functions: List[RegisteredTaskFunction], *, timeout_sec: float, backend_id: Union[str, None]):
     failed_once = False
     while True:
-        x = []
+        task_functions = []
         for a in registered_task_functions:
-            x.append({
+            task_functions.append({
                 'channelName': a.channel,
                 'taskFunctionId': a.task_function_id,
                 'taskFunctionType': a.task_function_type
             })
         req_data = {
-            'taskFunctions': x,
+            'taskFunctions': task_functions,
+            'backendId': backend_id,
             'timeoutMsec': timeout_sec * 1000
         }
 
@@ -51,11 +52,11 @@ def _register_task_functions(registered_task_functions: List[RegisteredTaskFunct
         try:
             daemon_url, headers = _daemon_url() # exception may be here
             url = f'{daemon_url}/task/registerTaskFunctions'
-            x = _http_post_json(url, req_data, headers=headers) # or exception may be here
+            response = _http_post_json(url, req_data, headers=headers) # or exception may be here
             
-            if not x['success']:
+            if not response['success']:
                 success_false_exception = True
-                print(x)
+                print(response)
                 raise Exception(f'Error registering task functions.') # or exception may be here
             if failed_once:
                 _reset_client_auth_code() # force re-reading of client auth code
@@ -86,7 +87,7 @@ def _register_task_functions(registered_task_functions: List[RegisteredTaskFunct
     #     requestedTasks: RequestedTask[]
     #     success: boolean
     # }
-    requested_tasks = x['requestedTasks']
+    requested_tasks = response['requestedTasks']
     ret: List[RequestedTask] = []
     for rt in requested_tasks:
         rt_channel_name = rt['channelName']
@@ -95,15 +96,16 @@ def _register_task_functions(registered_task_functions: List[RegisteredTaskFunct
         rt_task_function_id = rt['taskFunctionId']
         rt_task_function_type = rt['taskFunctionType']
         rt_task_kwargs = rt['kwargs']
-        for x in registered_task_functions:
-            if x.channel == rt_channel_name and x.task_function_id == rt_task_function_id:
-                if x.task_function_type == rt_task_function_type:
+        
+        for registered_task_function in registered_task_functions:
+            if registered_task_function.channel == rt_channel_name and registered_task_function.task_function_id == rt_task_function_id:
+                if registered_task_function.task_function_type == rt_task_function_type:
                     ret.append(RequestedTask(
-                        registered_task_function=x,
+                        registered_task_function=registered_task_function,
                         kwargs=rt_task_kwargs,
                         task_id=rt_task_id,
                         task_hash=rt_task_hash
                     ))
                 else:
-                    print(f'Warning: mismatch in task function type for {rt_task_function_id}: {x.task_function_type} <> {rt_task_function_type}')
+                    print(f'Warning: mismatch in task function type for {rt_task_function_id}: {registered_task_function.task_function_type} <> {rt_task_function_type}')
     return ret

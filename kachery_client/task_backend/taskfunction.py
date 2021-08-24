@@ -14,6 +14,7 @@ def all_taskfunction_ids() -> List[str]:
 def taskfunction(function_id: str, *, type: Union[Literal['pure-calculation'], Literal['query'], Literal['action']]):
     def wrap(f: Callable[..., Any]):
         setattr(f, '_task_function_type', type)
+        setattr(f, '_task_function_id', function_id)
         _global_registered_taskfunctions_by_function_id[function_id] = f
         return f
     return wrap

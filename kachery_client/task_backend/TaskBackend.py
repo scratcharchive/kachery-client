@@ -3,7 +3,7 @@ import atexit
 from kachery_client.task_backend.TaskJobManager import TaskJobManager
 import multiprocessing
 import random
-from typing import Dict, List, Protocol, cast
+from typing import Dict, List, Protocol, Union, cast
 
 from .RegisteredTaskFunction import RegisteredTaskFunction
 from .RequestedTask import RequestedTask
@@ -16,13 +16,13 @@ class OnRequestedTaskCallback(Protocol):
         pass
 
 class TaskBackend:
-    def __init__(self, registered_task_functions: List[RegisteredTaskFunction]):
+    def __init__(self, registered_task_functions: List[RegisteredTaskFunction], backend_id: Union[str, None]):
         self._task_backend_id = _random_string(10)
 
         self._task_job_manager = TaskJobManager()
         
         run_task_backend_pipe_to_parent, run_task_backend_pipe_to_child = multiprocessing.Pipe()
-        self._run_task_backend_worker_process =  multiprocessing.Process(target=_run_task_backend_worker, args=(run_task_backend_pipe_to_parent, registered_task_functions))
+        self._run_task_backend_worker_process =  multiprocessing.Process(target=_run_task_backend_worker, args=(run_task_backend_pipe_to_parent, registered_task_functions, backend_id))
         self._run_task_backend_pipe_to_worker = run_task_backend_pipe_to_child
 
         self._on_requested_task_callbacks: List[OnRequestedTaskCallback] = []

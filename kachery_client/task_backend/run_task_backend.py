@@ -1,15 +1,13 @@
 import json
 import time
-from typing import List
-from .RequestedTask import RequestedTask
+from typing import List, Union
 from os import error
 from .taskfunction import find_taskfunction, all_taskfunction_ids
 from .RegisteredTaskFunction import RegisteredTaskFunction
 from .TaskBackend import TaskBackend
-from .TaskJobManager import TaskJobManager
 
 
-def run_task_backend(*, channels: List[str], task_function_ids: List[str]):
+def run_task_backend(*, channels: List[str], task_function_ids: List[str], backend_id: Union[str, None]=None):
     task_functions: List[RegisteredTaskFunction] = []
     for function_id in task_function_ids:
         f = find_taskfunction(function_id)
@@ -25,7 +23,7 @@ def run_task_backend(*, channels: List[str], task_function_ids: List[str]):
         print(', '.join([f"'{x}'" for x in function_ids_not_included]))
         print('')
 
-    B = TaskBackend(registered_task_functions=task_functions)
+    B = TaskBackend(registered_task_functions=task_functions, backend_id=backend_id)
     B.start()
     try:
         while True:
