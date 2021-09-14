@@ -199,16 +199,17 @@ def get_feed_id(feed_name: str, *, create: bool=False) -> Union[None, str]:
     """
     return _get_feed_id(feed_name=feed_name, create=create)
 
-def load_subfeed(subfeed_uri: str):
+def load_subfeed(subfeed_uri: str, *, channel: str='*local*'):
     """Load a subfeed by URI
 
     Args:
         subfeed_uri (str): the URI of the subfeed
+        channel (str): the kachery channel to listen on (or '*local*' to only load locally)
 
     Returns:
         Subfeed: The subfeed associated with the URI
     """
-    return _load_subfeed(subfeed_uri=subfeed_uri)
+    return _load_subfeed(subfeed_uri=subfeed_uri, channel=channel)
         
 def load_feed(feed_name_or_uri: str, *, timeout_sec: Union[None, float]=None, create=False):
     """Load a feed by URI or local name
@@ -223,7 +224,7 @@ def load_feed(feed_name_or_uri: str, *, timeout_sec: Union[None, float]=None, cr
     """
     return _load_feed(feed_name_or_uri=feed_name_or_uri, timeout_sec=timeout_sec, create=create)
 
-def watch_for_new_messages(subfeed_watches: Dict[str, dict], *, wait_msec, signed=False) -> Dict[str, Any]:
+def watch_for_new_messages(subfeed_watches: Dict[str, dict], *, wait_msec, channel: str='*local*', signed=False) -> Dict[str, Any]:
     """Watch for new messages on one or more subfeeds
 
     Args:
@@ -233,7 +234,7 @@ def watch_for_new_messages(subfeed_watches: Dict[str, dict], *, wait_msec, signe
     Returns:
         List[dict]: The list of retrieved messages (TODO: more details needed)
     """
-    return _watch_for_new_messages(subfeed_watches=subfeed_watches, wait_msec=wait_msec, signed=signed)
+    return _watch_for_new_messages(subfeed_watches=subfeed_watches, wait_msec=wait_msec, channel=channel, signed=signed)
 
 ################################################
 

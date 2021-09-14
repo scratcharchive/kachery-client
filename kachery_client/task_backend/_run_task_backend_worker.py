@@ -24,7 +24,7 @@ def _run_task_backend_worker(pipe_to_parent: Connection, registered_task_functio
             else:
                 print(x)
                 raise Exception('Unexpected message in _run_task_backend_worker')
-        requested_tasks = _register_task_functions(registered_task_functions, timeout_sec=4, backend_id=backend_id)
+        requested_tasks = _register_task_functions(registered_task_functions, timeout_sec=15, backend_id=backend_id)
         for requested_task in requested_tasks:
             pipe_to_parent.send({
                 'type': 'request_task',

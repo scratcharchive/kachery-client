@@ -22,8 +22,8 @@ def _get_client_auth_code():
     elapsed = time.time() - _client_auth_code_info['timestamp']
     if elapsed > 60:
         code = _read_client_auth_code()
-        if _client_auth_code_info['code'] and (code != _client_auth_code_info['code']):
-            print(f'# Got new client auth code: {code}')
+        # if _client_auth_code_info['code'] and (code != _client_auth_code_info['code']):
+        #     print(f'# Got new client auth code: {code}')
         _client_auth_code_info['code'] = code
         _client_auth_code_info['timestamp'] = time.time()
     return _client_auth_code_info['code']

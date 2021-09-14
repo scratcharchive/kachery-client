@@ -57,14 +57,14 @@ class Feed:
     @property
     def is_snapshot(self):
         return self._is_snapshot
-    def load_subfeed(self, subfeed_name, position=0):
-        return Subfeed(feed=self, subfeed_name=subfeed_name, position=position)
+    def load_subfeed(self, subfeed_name, *, position=0, channel: str='*local*'):
+        return Subfeed(feed=self, subfeed_name=subfeed_name, position=position, channel=channel)
     def delete(self):
         _delete_feed(self.uri)
     def create_snapshot(self, subfeed_names: list):
         subfeeds = dict()
         for subfeed_name in subfeed_names:
-            subfeed = self.load_subfeed(subfeed_name)
+            subfeed = self.load_subfeed(subfeed_name, channel='*local*')
             messages = subfeed.get_next_messages(wait_msec=0)
             subfeeds[subfeed.subfeed_hash] = dict(
                 subfeedHash=subfeed.subfeed_hash,
@@ -94,12 +94,13 @@ def _sha1_of_object(obj: object) -> str:
 
 
 class Subfeed:
-    def __init__(self, *, feed, subfeed_name, position):
+    def __init__(self, *, feed, channel: str='*local*', subfeed_name, position):
         self._feed = feed
         self._feed_uri = feed._feed_uri
         self._feed_id = feed._feed_id
         self._is_writeable = feed._is_writeable
         self._subfeed_name = subfeed_name
+        self._channel = channel
         self._position = position
         self._subfeed_hash = _subfeed_hash(self._subfeed_name)
 
@@ -169,7 +170,7 @@ class Subfeed:
                     'position': self._position
                 }
             }
-            x = _watch_for_new_messages(subfeed_watches, wait_msec=wait_msec, signed=signed, max_num_messages=max_num_messages)
+            x = _watch_for_new_messages(subfeed_watches, channel=self._channel, wait_msec=wait_msec, signed=signed, max_num_messages=max_num_messages)
             y = x.get('watch', [])
             if advance_position:
                 self._position = self._position + len(y)
@@ -309,10 +310,10 @@ def _get_feed_id(feed_name, *, create=False):
     # feed_id = x['feedId']
     # return feed_id
 
-def _load_subfeed(subfeed_uri):
+def _load_subfeed(subfeed_uri, *, channel: str='*local*'):
     feed_id, subfeed_name, position = _parse_feed_uri(subfeed_uri)
     assert subfeed_name is not None, 'No subfeed name found'
-    return Feed('feed://' + feed_id).load_subfeed(subfeed_name=subfeed_name, position=position)
+    return Feed('feed://' + feed_id).load_subfeed(subfeed_name=subfeed_name, position=position, channel=channel)
         
 def _load_feed(feed_name_or_uri, *, timeout_sec: Union[None, float]=None, create=False):
     if feed_name_or_uri.startswith('feed://'):
@@ -332,7 +333,7 @@ def _load_feed(feed_name_or_uri, *, timeout_sec: Union[None, float]=None, create
         feed_id = _get_feed_id(feed_name, create=create)
         return _load_feed(f'feed://{feed_id}')
 
-def _watch_for_new_messages(subfeed_watches, *, wait_msec, signed=False, max_num_messages=0):
+def _watch_for_new_messages(subfeed_watches, *, wait_msec, channel: str='*local*', signed=False, max_num_messages=0):
     daemon_url, headers = _daemon_url()
     url = f'{daemon_url}/feed/watchForNewMessages'
     subfeed_watches2 = {}
@@ -340,6 +341,7 @@ def _watch_for_new_messages(subfeed_watches, *, wait_msec, signed=False, max_num
         subfeed_watches2[key] = {
             'feedId': watch['feedId'],
             'subfeedHash': watch.get('subfeedHash') if 'subfeedHash' in watch else _subfeed_hash(watch['subfeedName']),
+            'channelName': channel,
             'position': watch['position']
         }
     x = _http_post_json(url, dict(
@@ -349,7 +351,7 @@ def _watch_for_new_messages(subfeed_watches, *, wait_msec, signed=False, max_num
         maxNumMessages=max_num_messages
     ), headers=headers)
     if not x['success']:
-        raise Exception(f'Unable to watch for new messages.')
+        raise Exception(f'Unable to watch for new messages: {x["error"]}')
     return x['messages']
 
 def _parse_feed_uri(uri):
