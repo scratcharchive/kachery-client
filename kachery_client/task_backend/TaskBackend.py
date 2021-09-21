@@ -36,7 +36,7 @@ class TaskBackend:
         if self._task_backend_id in _running_task_backends:
             del _running_task_backends[self._task_backend_id]
     def process_events(self):
-        if self._run_task_backend_pipe_to_worker.poll():
+        while self._run_task_backend_pipe_to_worker.poll():
             msg = self._run_task_backend_pipe_to_worker.recv()
             type0 = msg['type']
             if type0 == 'request_task':
