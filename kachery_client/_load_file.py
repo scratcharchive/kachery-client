@@ -45,7 +45,7 @@ def _load_file(uri: str, dest: Union[str, None]=None, local_only: bool=False) ->
     if _is_offline_mode():
         return None
     if not _is_online_mode():
-        raise Exception('Not connected to daemon, and KACHERY_OFFLINE_STORAGE_DIR environment variable is not set.')
+        raise Exception('Not connected to a kachery daemon.')
     
     if local_only:
         return None
@@ -145,7 +145,7 @@ def _load_bytes(uri: str, start: Union[int, None], end: Union[int, None], write_
     if _is_offline_mode():
         return None
     if not _is_online_mode():
-        raise Exception('Not connected to daemon, and KACHERY_OFFLINE_STORAGE_DIR environment variable is not set.')
+        raise Exception('Not connected to a kachery daemon.')
 
     if local_only:
         return None
