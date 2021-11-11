@@ -73,7 +73,10 @@ def _load_file(uri: str, dest: Union[str, None]=None, local_only: bool=False) ->
             elif type0 == 'progress':
                 bytes_loaded = r['bytesLoaded']
                 bytes_total = r['bytesTotal']
-                pct = (bytes_loaded / bytes_total) * 100
+                if bytes_total > 0:
+                    pct = (bytes_loaded / bytes_total) * 100
+                else:
+                    pct = 100
                 print(f'Loaded {bytes_loaded} of {bytes_total} bytes ({pct:.1f} %): {uri}')
             elif type0 == 'error':
                 return None
