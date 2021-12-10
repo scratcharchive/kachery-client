@@ -32,3 +32,5 @@ def upload_file(path_or_uri: str, *, channel: str) -> str:
     signed_url = resp['signedUrl']
 
     _http_put_bytes(signed_url, file_content)
+
+    return uri

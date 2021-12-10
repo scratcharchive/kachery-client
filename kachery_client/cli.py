@@ -1,5 +1,6 @@
 import os
 import sys
+from typing import Union
 
 
 import click
@@ -33,8 +34,12 @@ def load_file(uri, dest):
 
 @click.command(help="Store a file on the local node.")
 @click.argument('path')
-def store_file(path: str):
-    x = kc.store_file(path)
+@click.option('--upload-to-channel', default=None, help='Optionally upload to a kachery channel')
+def store_file(path: str, upload_to_channel: Union[None, str]):
+    if upload_to_channel is not None:
+        x = kc.upload_file(path, channel=upload_to_channel)
+    else:
+        x = kc.store_file(path)
     print(x)
 
 @click.command(help="Store a link to file locally.")
