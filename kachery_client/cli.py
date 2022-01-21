@@ -32,12 +32,13 @@ def load_file(uri, dest):
     x = kc.load_file(uri, dest=dest)
     print(x)
 
-@click.command(help="Store a file on the local node.")
+@click.command(help="Store a file on the local node (and optionally upload to a channel).")
 @click.argument('path')
 @click.option('--upload-to-channel', default=None, help='Optionally upload to a kachery channel')
-def store_file(path: str, upload_to_channel: Union[None, str]):
+@click.option('--single-chunk', is_flag=True, help='Whether to upload the file all in one chunk')
+def store_file(path: str, upload_to_channel: Union[None, str], single_chunk: bool):
     if upload_to_channel is not None:
-        x = kc.upload_file(path, channel=upload_to_channel)
+        x = kc.upload_file(path, channel=upload_to_channel, single_chunk=single_chunk)
     else:
         x = kc.store_file(path)
     print(x)

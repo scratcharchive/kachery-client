@@ -13,18 +13,20 @@ from ._uri_handling import KacheryUri, _build_uri, _parse_uri
 
 def load_file(
     uri: str,
-    dest: Union[str, None]=None
+    dest: Union[str, None]=None,
+    local_only: bool=False
 ) -> Union[str, None]:
     """Load a file either from local kachery storage or from a remote kachery node
 
     Args:
         uri (str): The kachery URI for the file to load: sha1://...
         dest (Union[str, None], optional): Optional location to copy the file to. Defaults to None.
+        local_only (bool, optional): Optionally only load file from local kachery directory. Defaults to False.
 
     Returns:
         Union[str, None]: If found, the local path of the loaded file, else None
     """
-    return _load_file(uri=uri, dest=dest)
+    return _load_file(uri=uri, dest=dest, local_only=local_only)
 
 def load_bytes(uri: str, start: int, end: int, write_to_stdout=False) -> Union[bytes, None]:
     """Load a subset of bytes from a file in local storage or from remote nodes in the kachery network

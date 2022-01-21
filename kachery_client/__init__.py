@@ -18,3 +18,5 @@ from ._shellscript import ShellScript
 from ._feeds import Feed, Subfeed
 
 from .upload_file import upload_file
+
+from .ephemeral.EphemeralClient import EphemeralClient
