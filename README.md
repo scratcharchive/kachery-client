@@ -17,11 +17,11 @@ Running a kachery daemon also requires Nodejs >= 12.
 pip install --upgrade kachery-client
 ```
 
-You should also run a [kachery daemon](https://github.com/kacheryhub/kachery-doc/blob/main/doc/hostKacheryNode.md).
+Unless you are using kachery client in ephemeral mode, you should also run a [kachery daemon](https://github.com/kacheryhub/kachery-doc/blob/main/doc/hostKacheryNode.md).
 
 ## Command-line usage
 
-The following commands are available in a terminal:
+The following commands are available in a terminal. Use --help to get detailed usage information.
 
 ```bash
 kachery-cat # Load a file and print the content

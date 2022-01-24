@@ -38,7 +38,7 @@ class EphemeralClient:
         assert algorithm == 'sha1'
         if self._connected_to_daemon:
             # if we are connected to the daemon, let's first check the local kachery storage directory
-            a = load_file(uri, local_only=True)
+            a = load_file(uri, local_only=True, dest=dest)
             if a is not None:
                 return a
         else:
@@ -48,7 +48,11 @@ class EphemeralClient:
             kachery_storage_file_name = f'{kachery_storage_parent_dir}/{sha1}'
             if os.path.exists(kachery_storage_file_name):
                 # we have the file locally... return that
-                return kachery_storage_file_name
+                if dest:
+                    shutil.copyfile(kachery_storage_file_name, dest)
+                    return dest
+                else:
+                    return kachery_storage_file_name
         if 'manifest' in query:
             # The uri has a manifest. But let's first check whether the file is stored on the bucket in its entirety
             # aa = self.load_file(f'sha1://{sha1}') # no manifest included in the uri
@@ -75,12 +79,16 @@ class EphemeralClient:
                     raise Exception(f'Unexpected sha1 of concatenated file for {uri}')
                 if self._connected_to_daemon:
                     a_uri = store_file(tmp_fname)
-                    return load_file(a_uri)
+                    return load_file(a_uri, dest=dest)
                 else:
                     if not os.path.exists(kachery_storage_parent_dir):
                         os.makedirs(kachery_storage_parent_dir)
                     shutil.copyfile(tmp_fname, kachery_storage_file_name)
-                    return kachery_storage_file_name
+                    if dest:
+                        shutil.copyfile(kachery_storage_file_name, dest)
+                        return dest
+                    else:
+                        return kachery_storage_file_name
         with TemporaryDirectory() as tmpdir:
             url = _get_bucket_base_url(self._channel)
             # download to this local file:
@@ -100,13 +108,18 @@ class EphemeralClient:
             if self._connected_to_daemon:
                 # if we are connected to the daemon, store the file in the local kachery storage
                 store_file(tmp_fname)
-                return load_file(uri)
+                return load_file(uri, dest=dest)
             else:
                 # if we are not connected to daemon, store the file in the ephemeral local kachery storage
                 if not os.path.exists(kachery_storage_parent_dir):
                     os.makedirs(kachery_storage_parent_dir)
                 shutil.copyfile(tmp_fname, kachery_storage_file_name)
-                return kachery_storage_file_name
+                if dest:
+                    shutil.copyfile(kachery_storage_file_name, dest)
+                    return dest
+                else:
+                    return kachery_storage_file_name
+
     def load_json(self, uri: str) -> Union[dict, None]:
         import simplejson
         local_path = self.load_file(uri)

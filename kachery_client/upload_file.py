@@ -1,4 +1,8 @@
 import hashlib
+from typing import Any, Union
+import numpy as np
+
+from kachery_client.main import store_json, store_npy, store_text, store_pkl
 from ._daemon_connection import (_daemon_url)
 from ._load_file import _load_file, _load_json
 from ._misc import _http_post_json, _parse_kachery_uri
@@ -6,7 +10,7 @@ from ._store_file import _store_file
 from .task_backend._update_task_status import _http_put_bytes
 
 
-def upload_file(path_or_uri: str, *, channel: str, single_chunk=False) -> str:
+def upload_file(path_or_uri: str, *, channel: str, single_chunk: bool=False) -> str:
     if path_or_uri.startswith('sha1://'):
         uri = path_or_uri
     else:
@@ -41,6 +45,22 @@ def upload_file(path_or_uri: str, *, channel: str, single_chunk=False) -> str:
 
     _upload_file_content(file_content, sha1=sha1, channel=channel)
     return uri
+
+def upload_json(x: Union[dict, list, int, float, str], *, channel: str, basename: Union[str, None]=None, single_chunk: bool=False) -> str:
+    uri = store_json(x, basename=basename)
+    return upload_file(uri, channel=channel, single_chunk=single_chunk)
+
+def upload_text(x: str, *, channel: str, basename: Union[str, None]=None, single_chunk: bool=False) -> str:
+    uri = store_text(x, basename=basename)
+    return upload_file(uri, channel=channel, single_chunk=single_chunk)
+
+def upload_npy(x: np.ndarray, *, channel: str, basename: Union[str, None]=None, single_chunk: bool=False) -> str:
+    uri = store_npy(x, basename=basename)
+    return upload_file(uri, channel=channel, single_chunk=single_chunk)
+
+def upload_pkl(x: Any, *, channel: str, basename: Union[str, None]=None, single_chunk: bool=False) -> str:
+    uri = store_pkl(x, basename=basename)
+    return upload_file(uri, channel=channel, single_chunk=single_chunk)
 
 def _sha1_of_data(data: bytes):
     m = hashlib.sha1()

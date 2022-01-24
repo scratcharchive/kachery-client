@@ -28,8 +28,13 @@ def info():
 @click.command(help="Load or download a file.")
 @click.argument('uri')
 @click.option('--dest', default=None, help='Optional local path of destination file.')
-def load_file(uri, dest):
-    x = kc.load_file(uri, dest=dest)
+@click.option('--ephemeral-channel', default=None, help='Load direct from channel in ephemeral mode')
+def load_file(uri, dest, ephemeral_channel):
+    if ephemeral_channel:
+        kec = kc.EphemeralClient(channel=ephemeral_channel)
+        x = kec.load_file(uri, dest=dest)
+    else:
+        x = kc.load_file(uri, dest=dest)
     print(x)
 
 @click.command(help="Store a file on the local node (and optionally upload to a channel).")
@@ -53,12 +58,18 @@ def link_file(path: str):
 @click.argument('uri')
 @click.option('--start', help='The start byte (optional)', default=None)
 @click.option('--end', help='The end byte non-inclusive (optional)', default=None)
-def cat_file(uri, start, end):
+@click.option('--ephemeral-channel', default=None, help='Load direct from channel in ephemeral mode')
+def cat_file(uri, start, end, ephemeral_channel):
     old_stdout = sys.stdout
     sys.stdout = None
 
+    if ephemeral_channel is not None:
+        kk = kc.EphemeralClient(channel=ephemeral_channel)
+    else:
+        kk = kc
+
     if start is None and end is None:
-        path1 = kc.load_file(uri)
+        path1 = kk.load_file(uri)
         if not path1:
             raise Exception('Error loading file for cat.')
         sys.stdout = old_stdout
@@ -76,7 +87,9 @@ def cat_file(uri, start, end):
         if start == end:
             return
         sys.stdout = old_stdout
-        kc.load_bytes(uri=uri, start=start, end=end, write_to_stdout=True)
+        if ephemeral_channel is not None:
+            raise Exception('Cannot load byte range in ephemeral mode. Not yet implemented.')
+        kk.load_bytes(uri=uri, start=start, end=end, write_to_stdout=True)
 
 @click.command(help="Generate and print a random node ID with an associated private key")
 def generate_node_id():

@@ -17,6 +17,6 @@ from ._shellscript import ShellScript
 
 from ._feeds import Feed, Subfeed
 
-from .upload_file import upload_file
+from .upload_file import upload_file, upload_text, upload_json, upload_npy, upload_pkl
 
 from .ephemeral.EphemeralClient import EphemeralClient
