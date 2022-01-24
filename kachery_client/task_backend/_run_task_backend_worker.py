@@ -1,7 +1,7 @@
 import sys
 import time
 from multiprocessing.connection import Connection
-from typing import List, Protocol, Union
+from typing import List, Union
 from .._daemon_connection import _client_auth_code_info, _reset_client_auth_code # a hack, see below
 
 from .RegisteredTaskFunction import RegisteredTaskFunction

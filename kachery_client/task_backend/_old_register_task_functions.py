@@ -1,14 +1,10 @@
-from typing import Any, List, Protocol
+from typing import List, Any
 from .._daemon_connection import _daemon_url
 from .._misc import _http_post_json
 
-class RegisteredTaskFunctionCallback(Protocol):
-    def __call__(self, *, channel: str, task_id: str, task_kwargs: dict, task_function_type: str):
-        pass
-
 
 class RegisteredTaskFunction:
-    def __init__(self, *, task_function_id: str, task_function_type: str, channel: str, callback: RegisteredTaskFunctionCallback) -> None:
+    def __init__(self, *, task_function_id: str, task_function_type: str, channel: str, callback: Any) -> None:
         self._task_function_id = task_function_id
         self._task_function_type = task_function_type
         self._channel = channel
