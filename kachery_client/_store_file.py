@@ -155,7 +155,7 @@ def _store_pkl(x: Any, basename: Union[str, None]=None) -> str:
     if basename is None:
         basename = 'file.pkl'
     with TemporaryDirectory() as tmpdir:
-        fname = tmpdir + '/array.pkl'
+        fname = tmpdir + '/file.pkl'
         _safe_pickle(fname, x)
         _add_read_permissions(tmpdir)
         _add_exec_permissions(tmpdir)
