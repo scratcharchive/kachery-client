@@ -19,4 +19,6 @@ from ._feeds import Feed, Subfeed
 
 from .upload_file import upload_file, upload_text, upload_json, upload_npy, upload_pkl
 
-from .ephemeral.EphemeralClient import EphemeralClient
+from .ephemeral_client_deprecated.EphemeralClient import EphemeralClient
+from .direct_client.DirectClient import DirectClient
+from .enable_ephemeral import enable_ephemeral

@@ -28,10 +28,13 @@ def info():
 @click.command(help="Load or download a file.")
 @click.argument('uri')
 @click.option('--dest', default=None, help='Optional local path of destination file.')
-@click.option('--ephemeral-channel', default=None, help='Load direct from channel in ephemeral mode')
-def load_file(uri, dest, ephemeral_channel):
-    if ephemeral_channel:
-        kec = kc.EphemeralClient(channel=ephemeral_channel)
+@click.option('--direct-channel', default=None, help='Load direct from channel without using a daemon or representing a node')
+@click.option('--enable-ephemeral', '-e', is_flag=True, help='Enable ephemeral mode')
+def load_file(uri, dest, direct_channel, enable_ephemeral: bool):
+    if enable_ephemeral:
+        kc.enable_ephemeral()
+    if direct_channel:
+        kec = kc.DirectClient(channel=direct_channel)
         x = kec.load_file(uri, dest=dest)
     else:
         x = kc.load_file(uri, dest=dest)
@@ -41,7 +44,10 @@ def load_file(uri, dest, ephemeral_channel):
 @click.argument('path')
 @click.option('--upload-to-channel', default=None, help='Optionally upload to a kachery channel')
 @click.option('--single-chunk', is_flag=True, help='Whether to upload the file all in one chunk')
-def store_file(path: str, upload_to_channel: Union[None, str], single_chunk: bool):
+@click.option('--enable-ephemeral', '-e', is_flag=True, help='Enable ephemeral mode')
+def store_file(path: str, upload_to_channel: Union[None, str], single_chunk: bool, enable_ephemeral: bool):
+    if enable_ephemeral:
+        kc.enable_ephemeral()
     if upload_to_channel is not None:
         x = kc.upload_file(path, channel=upload_to_channel, single_chunk=single_chunk)
     else:
@@ -58,13 +64,17 @@ def link_file(path: str):
 @click.argument('uri')
 @click.option('--start', help='The start byte (optional)', default=None)
 @click.option('--end', help='The end byte non-inclusive (optional)', default=None)
-@click.option('--ephemeral-channel', default=None, help='Load direct from channel in ephemeral mode')
-def cat_file(uri, start, end, ephemeral_channel):
+@click.option('--direct-channel', default=None, help='Load direct from channel')
+@click.option('--enable-ephemeral', '-e', is_flag=True, help='Enable ephemeral mode')
+def cat_file(uri, start, end, direct_channel, enable_ephemeral):
     old_stdout = sys.stdout
     sys.stdout = None
 
-    if ephemeral_channel is not None:
-        kk = kc.EphemeralClient(channel=ephemeral_channel)
+    if enable_ephemeral:
+        kc.enable_ephemeral()
+
+    if direct_channel is not None:
+        kk = kc.DirectClient(channel=direct_channel)
     else:
         kk = kc
 
@@ -87,8 +97,8 @@ def cat_file(uri, start, end, ephemeral_channel):
         if start == end:
             return
         sys.stdout = old_stdout
-        if ephemeral_channel is not None:
-            raise Exception('Cannot load byte range in ephemeral mode. Not yet implemented.')
+        if direct_channel is not None:
+            raise Exception('Cannot load byte range in direct mode. Not yet implemented.')
         kk.load_bytes(uri=uri, start=start, end=end, write_to_stdout=True)
 
 @click.command(help="Generate and print a random node ID with an associated private key")
