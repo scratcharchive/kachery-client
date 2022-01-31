@@ -21,7 +21,7 @@ def config_ephemeral_node():
         print(f'Ephemeral node is already configured at {_get_ephemeral_kachery_storage_dir()}')
         return
     kachery_storage_dir = _get_ephemeral_kachery_storage_dir()
-    print(f'Configuring ephermal node at {kachery_storage_dir}')
+    print(f'Configuring ephemeral node at {kachery_storage_dir}')
     owner_id = input('Enter the owner of this node (Google ID): ')
     public_key_hex, private_key_hex = _generate_keypair()
     if not os.path.exists(kachery_storage_dir):

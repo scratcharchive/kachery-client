@@ -23,3 +23,5 @@ from .ephemeral_client_deprecated.EphemeralClient import EphemeralClient
 from .direct_client.DirectClient import DirectClient
 from .enable_ephemeral import enable_ephemeral
 from .ephemeral.config_ephemeral_node import config_ephemeral_node
+
+from .setup_colab_ephemeral import setup_colab_ephemeral

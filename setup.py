@@ -17,6 +17,7 @@ setuptools.setup(
         "click",
         "simplejson",
         "requests",
+        'cryptography',
         "jinjaroot"
     ]
 )
