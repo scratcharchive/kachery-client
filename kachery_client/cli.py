@@ -5,7 +5,7 @@ from typing import Union
 
 import click
 import kachery_client as kc
-from ._daemon_connection import _get_node_id, _read_client_auth_code
+from ._daemon_connection import _get_node_id, _read_client_auth_code, _connected_to_daemon, _kachery_storage_dir
 
 
 @click.group(help="Kachery peer-to-peer command-line client")
@@ -13,17 +13,35 @@ def cli():
     pass
 
 @click.command(help="Get info about the kachery daemon")
-def info():
-    node_id = _get_node_id()
-    try:
-        client_auth_code = _read_client_auth_code()
-    except:
-        client_auth_code = None
-    print(f'Node ID: {node_id}')
-    if client_auth_code:
-        print('You have access to this daemon')
+@click.option('--enable-ephemeral', '-e', is_flag=True, help='Enable ephemeral mode')
+def info(enable_ephemeral: bool):
+    if enable_ephemeral:
+        kc.enable_ephemeral()
+    if _connected_to_daemon():
+        node_id = _get_node_id()
+        try:
+            client_auth_code = _read_client_auth_code()
+        except:
+            client_auth_code = None
+        print(f'Node ID: {node_id}')
+        owner_fname = f'{_kachery_storage_dir()}/owner'
+        if os.path.exists(owner_fname):
+            with open(owner_fname, 'r') as f:
+                owner_id = f.read()
+            print(f'Owner: {owner_id}')
+        else:
+            print(f'Unable to find owner file name: {owner_fname}')
+        if client_auth_code:
+            print('You have access to this daemon')
+        else:
+            print('You do not have access to this daemon')
     else:
-        print('You do not have access to this daemon')
+        from .ephemeral.ephemeral_load_file import _get_owner
+        node_id = _get_node_id()
+        owner_id = _get_owner()
+        print(f'Node ID: {node_id}')
+        print(f'Owner: {owner_id}')
+        print(f'You are in ephemeral mode.')
 
 @click.command(help="Load or download a file.")
 @click.argument('uri')

@@ -23,7 +23,7 @@ def _get_private_key_hex():
     kachery_storage_dir = _get_ephemeral_kachery_storage_dir()
     private_key_fname = f'{kachery_storage_dir}/private.pem'
     if not os.path.exists(private_key_fname):
-        raise Exception(f'Not connected to daemon and private key not found: {private_key_fname}')
+        return None
     with open(private_key_fname, 'r') as f:
         private_key = f.read()
     private_key_hex = _private_key_to_hex(private_key)
@@ -36,7 +36,7 @@ def _get_public_key_hex():
     kachery_storage_dir = _get_ephemeral_kachery_storage_dir()
     public_key_fname = f'{kachery_storage_dir}/public.pem'
     if not os.path.exists(public_key_fname):
-        raise Exception(f'Not connected to daemon and public key not found: {public_key_fname}')
+        return None
     with open(public_key_fname, 'r') as f:
         public_key = f.read()
     public_key_hex = _public_key_to_hex(public_key)
@@ -49,7 +49,7 @@ def _get_owner():
     kachery_storage_dir = _get_ephemeral_kachery_storage_dir()
     owner_fname = f'{kachery_storage_dir}/owner'
     if not os.path.exists(owner_fname):
-        raise Exception(f'Not connected to daemon and owner file not found: {owner_fname}')
+        return None
     with open(owner_fname, 'r') as f:
         owner = f.read()
     _global['owner'] = owner
@@ -61,6 +61,9 @@ def _get_node_config():
     private_key_hex = _get_private_key_hex()
     public_key_hex = _get_public_key_hex()
     owner_id = _get_owner()
+    assert public_key_hex is not None, 'Unable to get public key and not connected to daemon.'
+    assert private_key_hex is not None, 'Unable to get private key and not connected to daemon.'
+    assert owner_id is not None, 'Unable to get owner ID and not connected to daemon.'
     body = {
         'type': 'getNodeConfig',
         'nodeId': public_key_hex,
@@ -178,6 +181,14 @@ def _private_key_to_hex(key: str) -> str:
         raise Exception('Problem in private key format (3).')
     return ret[len(ed25519PrivateKeyPrefix):]
 
+def _public_key_from_hex(key_hex: str):
+    a = base64.b64encode(bytes.fromhex(ed25519PubKeyPrefix + key_hex)).decode()
+    return f'-----BEGIN PUBLIC KEY-----\n{a}\n-----END PUBLIC KEY-----'
+
+def _private_key_from_hex(key_hex: str):
+    a = base64.b64encode(bytes.fromhex(ed25519PrivateKeyPrefix + key_hex)).decode()
+    return f'-----BEGIN PRIVATE KEY-----\n{a}\n-----END PRIVATE KEY-----'
+
 def _deterministic_json_dumps(x: dict):
     import simplejson
     return simplejson.dumps(x, separators=(',', ':'), indent=None, allow_nan=False, sort_keys=True)
@@ -210,3 +221,22 @@ def _verify_signature(msg: dict, public_key_hex: str, signature: str):
     except:
         return False
     return True
+
+def _generate_keypair():
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    privk = Ed25519PrivateKey.generate()
+    pubk = privk.public_key()
+    private_key_hex = privk.private_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PrivateFormat.Raw,
+        encryption_algorithm=serialization.NoEncryption()
+    ).hex()
+    public_key_hex = pubk.public_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PublicFormat.Raw
+    ).hex()
+    test_msg = {'a': 1}
+    test_signature = _sign_message(test_msg, public_key_hex, private_key_hex)
+    assert _verify_signature(test_msg, public_key_hex, test_signature)
+    return public_key_hex, private_key_hex

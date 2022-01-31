@@ -12,8 +12,10 @@ _global = {
 def _get_channel_config(channel: str):
     if channel in _global['channel_configs']:
         return _global['channel_configs'][channel]
-    private_key_hex = _get_private_key_hex()
     public_key_hex = _get_public_key_hex()
+    private_key_hex = _get_private_key_hex()
+    assert public_key_hex is not None, 'Unable to get public key and not connected to daemon'
+    assert private_key_hex is not None, 'Unable to get private key and not connected to daemon'
     body = {
         'type': 'getChannelConfig',
         'channelName': channel
