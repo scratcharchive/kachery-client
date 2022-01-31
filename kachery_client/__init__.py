@@ -22,4 +22,4 @@ from .upload_file import upload_file, upload_text, upload_json, upload_npy, uplo
 from .ephemeral_client_deprecated.EphemeralClient import EphemeralClient
 from .direct_client.DirectClient import DirectClient
 from .enable_ephemeral import enable_ephemeral
-from .ephemeral.config_ephemeral import config_ephemeral
+from .ephemeral.config_ephemeral_node import config_ephemeral_node

@@ -10,6 +10,7 @@ setuptools.setup(
         "bin/kachery-store",
         "bin/kachery-link",
         "bin/kachery-info",
+        "bin/kachery-config-ephemeral-node",
         "bin/kachery-generate-node-id"
     ],
     install_requires=[

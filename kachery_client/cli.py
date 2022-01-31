@@ -119,6 +119,10 @@ def cat_file(uri, start, end, direct_channel, enable_ephemeral):
             raise Exception('Cannot load byte range in direct mode. Not yet implemented.')
         kk.load_bytes(uri=uri, start=start, end=end, write_to_stdout=True)
 
+@click.command(help='Configure an ephemeral node')
+def config_ephemeral_node():
+    kc.config_ephemeral_node()
+
 @click.command(help="Generate and print a random node ID with an associated private key")
 def generate_node_id():
     try:
@@ -153,4 +157,5 @@ cli.add_command(store_file)
 cli.add_command(link_file)
 cli.add_command(info)
 cli.add_command(version)
+cli.add_command(config_ephemeral_node)
 cli.add_command(generate_node_id)
