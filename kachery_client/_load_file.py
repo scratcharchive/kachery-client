@@ -4,11 +4,12 @@ import shutil
 from typing import Any, Union
 import simplejson
 import numpy as np
-from ._daemon_connection import _is_offline_mode, _is_online_mode, _daemon_url, _kachery_storage_dir
+from ._daemon_connection import _daemon_url, _kachery_storage_dir, _connected_to_daemon
 from ._misc import _create_file_key, _http_post_json_receive_json_socket, _parse_kachery_uri
 from ._exceptions import LoadFileError
 from ._local_kachery_storage import _local_kachery_storage_load_file, _local_kachery_storage_load_bytes
 from ._safe_pickle import _safe_unpickle
+from .enable_ephemeral import _use_ephemeral
 
 def _load_file(uri: str, dest: Union[str, None]=None, local_only: bool=False) -> Union[str, None]:
     # handle old sha1dir system
@@ -29,6 +30,17 @@ def _load_file(uri: str, dest: Union[str, None]=None, local_only: bool=False) ->
         else:
             raise Exception(f'Local file not found: {uri}')
 
+    if _use_ephemeral():
+        from .ephemeral.ephemeral_load_file import ephemeral_load_file
+        local_fname = ephemeral_load_file(uri, local_only=local_only)
+        if local_fname is None:
+            return None
+        if dest is not None:
+            shutil.copyfile(local_fname, dest)
+            return dest
+        else:
+            return local_fname
+
     # first check the local kachery storage (if kachery storage dir is known)
     if _kachery_storage_dir():
         if True: # for debugging (not loading locally) switch to false
@@ -42,10 +54,8 @@ def _load_file(uri: str, dest: Union[str, None]=None, local_only: bool=False) ->
                     return dest
                 else:
                     return local_path
-    if _is_offline_mode():
-        return None
-    if not _is_online_mode():
-        raise Exception('Not connected to a kachery daemon.')
+    if not _connected_to_daemon():
+        raise Exception('Not connected to a kachery daemon and not in ephemeral mode.')
     
     if local_only:
         return None
@@ -145,11 +155,6 @@ def _load_bytes(uri: str, start: Union[int, None], end: Union[int, None], write_
         if bytes0 is not None:
             return bytes0
     
-    if _is_offline_mode():
-        return None
-    if not _is_online_mode():
-        raise Exception('Not connected to a kachery daemon.')
-
     if local_only:
         return None
     

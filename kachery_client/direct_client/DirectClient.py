@@ -20,7 +20,7 @@ def _get_bucket_base_url(channel: str):
     _bucket_base_urls[channel] = url
     return url
 
-class EphemeralClient:
+class DirectClient:
     def __init__(self, *, channel: Union[None, str]=None) -> None:
         self._channel = channel
         # get the channel bucket base url within the constructor
@@ -56,9 +56,9 @@ class EphemeralClient:
                     return kachery_storage_file_name
         if 'manifest' in query:
             # The uri has a manifest. But let's first check whether the file is stored on the bucket in its entirety
-            # aa = self.load_file(f'sha1://{sha1}') # no manifest included in the uri
-            # if aa is not None:
-            #     return aa
+            aa = self.load_file(f'sha1://{sha1}') # no manifest included in the uri
+            if aa is not None:
+                return aa
             # The uri has a manifest, so we are going to load it in chunks
             manifest = self.load_json(f'sha1://{query["manifest"][0]}')
             # load the file chunks individually

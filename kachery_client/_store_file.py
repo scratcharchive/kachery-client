@@ -5,24 +5,34 @@ import simplejson
 import numpy as np
 import stat
 import json
-from ._daemon_connection import _is_offline_mode, _is_online_mode, _kachery_storage_dir, _daemon_url
+
+from ._daemon_connection import _kachery_storage_dir, _daemon_url, _connected_to_daemon
 from ._local_kachery_storage import _local_kachery_storage_store_file, _local_kachery_storage_link_file
 from ._misc import _http_post_json, _http_post_file
 from ._temporarydirectory import TemporaryDirectory
 from ._safe_pickle import _safe_pickle, _safe_unpickle
 from ._local_kachery_storage import _get_path_ext
+from .enable_ephemeral import _use_ephemeral
+
+_global = {
+    'direct_client': None
+}
+
+def _get_direct_client():
+    from .direct_client.DirectClient import DirectClient
+    if _global['direct_client']:
+        return _global['direct_client']
+    direct_client = DirectClient()
+    _global['direct_client'] = direct_client
+    return direct_client
 
 def _store_file(path: str, basename: Union[str, None]=None) -> str:
     if basename is None:
         basename = os.path.basename(path)
-    if _is_offline_mode():
-        stored_path, hash0, manifest_hash = _local_kachery_storage_store_file(path=path)
-        if manifest_hash is None:
-            return f'sha1://{hash0}/{basename}'
-        else:
-            return f'sha1://{hash0}/{basename}?manifest={manifest_hash}'
-    if not _is_online_mode():
-        raise Exception('Not connected to daemon and not in offline mode.')
+    if _use_ephemeral():
+        return _get_direct_client().store_file(path, basename=basename)
+    if not _connected_to_daemon():
+        raise Exception('Not connected to daemon and not in ephemeral mode.')
     file_size = os.path.getsize(path)
     daemon_url, headers = _daemon_url()
     # url = f'{daemon_url}/storeFile'
@@ -60,14 +70,8 @@ def _store_file(path: str, basename: Union[str, None]=None) -> str:
 def _link_file(path: str, basename: Union[str, None]=None) -> str:
     if basename is None:
         basename = os.path.basename(path)
-    if _is_offline_mode():
-        stored_path, hash0, manifest_hash = _local_kachery_storage_link_file(path=path)
-        if manifest_hash is None:
-            return f'sha1://{hash0}/{basename}'
-        else:
-            return f'sha1://{hash0}/{basename}?manifest={manifest_hash}'
-    if not _is_online_mode():
-        raise Exception('Not connected to daemon and not in offline mode.')
+    if not _connected_to_daemon():
+        raise Exception('Not connected to daemon (*).')
     file_size = os.path.getsize(path)
     mtime = os.stat(path).st_mtime
     daemon_url, headers = _daemon_url()

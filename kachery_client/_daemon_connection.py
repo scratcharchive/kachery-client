@@ -133,15 +133,18 @@ def _kachery_temp_dir() -> str:
     else:
         return _create_if_needed(tempfile.gettempdir() + '/kachery-tmp')
 
-def _is_offline_mode():
-    return _kachery_offline_storage_dir_env_is_set()
-        
-def _is_online_mode():
-    if _is_offline_mode():
-        return False
-    return _kachery_storage_dir() is not None
-
 def _get_node_id(daemon_port=None) -> str:
     x = _buffered_probe_daemon(daemon_port=daemon_port)
-    assert x is not None, 'Unable to connect to daemon.'
+    if x is None:
+        from .enable_ephemeral import _ephemeral_enabled
+        if _ephemeral_enabled():
+            from .ephemeral.ephemeral_load_file import _get_public_key_hex
+            node_id = _get_public_key_hex()
+            if node_id is None:
+                raise Exception('Unable to connect to daemon, and unable to get ephemeral node ID')
+            return node_id
+        raise Exception('Unable to connect to daemon and not in ephemeral mode.')
     return x.node_id
+
+def _connected_to_daemon(daemon_port=None) -> bool:
+    return _buffered_probe_daemon(daemon_port=daemon_port) is not None

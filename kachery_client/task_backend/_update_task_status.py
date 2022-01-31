@@ -85,4 +85,3 @@ def _http_put_bytes(url: str, data: bytes):
             raise Exception(f'Error putting data: {req.status_code} {req.content.decode("utf-8")}')
     finally:
         req.close()
-
