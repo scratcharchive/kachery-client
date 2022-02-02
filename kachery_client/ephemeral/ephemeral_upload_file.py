@@ -1,6 +1,6 @@
 import time
 from .ephemeral_load_file import _get_private_key_hex, _get_public_key_hex, _get_owner, _sign_message
-from .._misc import _http_post_json
+from .._misc import _http_post_json, _get_kachery_hub_uri, _get_bitwooder_uri
 from ..task_backend._update_task_status import _http_put_bytes
 
 
@@ -26,7 +26,8 @@ def _get_channel_config(channel: str):
         'nodeId': public_key_hex,
         'signature': signature
     }
-    url = f'https://kacheryhub.org/api/kacheryNode'
+    endpoint_uri = _get_kachery_hub_uri(with_protocol=True)
+    url = f'{endpoint_uri}/api/kacheryNode'
     resp = _http_post_json(url, req)
     if not resp['found']:
         raise Exception('Channel config not found')
@@ -55,7 +56,8 @@ def _get_bitwooder_cert_for_channel(channel: str):
         'nodeId': public_key_hex,
         'signature': signature
     }
-    url = f'https://kacheryhub.org/api/kacheryNode'
+    endpoint_uri = _get_kachery_hub_uri(with_protocol=True)
+    url = f'{endpoint_uri}/api/kacheryNode'
     resp = _http_post_json(url, req)
     cert = resp['cert']
     key = resp['key']
@@ -90,7 +92,8 @@ def ephemeral_upload_file(*, file_content: bytes, sha1: str, channel: str) -> No
             'delegationCertificate': cert
         }
     }
-    url = f'https://bitwooder.net/api/resource'
+    endpoint = _get_bitwooder_uri(with_protocol=True)
+    url = f'{endpoint}/api/resource'
     resp = _http_post_json(url, req)
     upload_urls = resp['uploadUrls']
     upload_url = upload_urls[0]

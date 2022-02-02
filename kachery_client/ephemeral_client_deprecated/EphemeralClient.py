@@ -2,7 +2,7 @@ import os
 import shutil
 from typing import Union, Any, List
 import numpy as np
-from .._misc import _http_post_json, _parse_kachery_uri
+from .._misc import _http_post_json, _parse_kachery_uri, _get_kachery_hub_uri
 from .._temporarydirectory import TemporaryDirectory
 from ..main import store_file, load_file, store_npy, store_pkl, store_text, store_json
 from .._daemon_connection import _probe_daemon
@@ -15,7 +15,8 @@ _bucket_base_urls = {} # by channel
 def _get_bucket_base_url(channel: str):
     if channel in _bucket_base_urls:
         return _bucket_base_urls[channel]
-    response = _http_post_json('https://kacheryhub.org/api/getChannelBucketBaseUrl', {'channelName': channel})
+    endpoint_uri = _get_kachery_hub_uri(with_protocol=True)
+    response = _http_post_json(f'{endpoint_uri}/api/getChannelBucketBaseUrl', {'channelName': channel})
     url = response['url']
     _bucket_base_urls[channel] = url
     return url
