@@ -27,7 +27,6 @@ def _get_envvar_uri(environment_var_name: str, default: str) -> Tuple[str, str]:
 
 def _get_kachery_hub_uri(with_protocol=True) -> str:
     (protocol, uri) = _get_envvar_uri('KACHERY_HUB_API_URI', 'kacheryhub.org')
-    print(f'DEBUG: returning kachery-hub uri {protocol}://{uri}')
     if (with_protocol):
         return f'{protocol}://{uri}'
     return uri
