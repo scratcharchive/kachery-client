@@ -1,6 +1,7 @@
 import os
 import json
 import kachery_client as kc
+from ._misc import _get_kachery_hub_uri
 from .ephemeral.ephemeral_load_file import _get_public_key_hex, _get_private_key_hex, _get_owner, _get_ephemeral_kachery_storage_dir, _public_key_from_hex, _private_key_from_hex, _public_key_to_hex, _private_key_to_hex
 
 def setup_colab_ephemeral(config_file_path: str):
@@ -55,6 +56,7 @@ def setup_colab_ephemeral(config_file_path: str):
   print(f'Enabling ephemeral mode')
   kc.enable_ephemeral()
 
+  endpoint = _get_kachery_hub_uri(with_protocol=True)
   print(f'Node ID: {node_id}')
   print(f'Owner: {owner_id}')
-  print(f'Register or configure this node at https://kacheryhub.org')
+  print(f'Register or configure this node at {endpoint}')

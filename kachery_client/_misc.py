@@ -1,8 +1,41 @@
 import os
+import re
 import time
 import json
 from typing import Any, Dict, Iterable, Optional, Tuple, Union
 from urllib.parse import parse_qs
+
+def _parse_string_to_protocol_and_basename(string: str) -> Union[Tuple[str, str], None]:
+    expr = re.compile('^(https?://)?(.*?)/?$')
+    match = expr.match(string)
+    if (not match):
+        return None
+    protocol = match.group(1) or 'https'
+    if (protocol[-3:] == '://'):
+        protocol = protocol[:-3]
+    uri = match.group(2)
+    if (':' in uri or '/' in uri):
+        return None
+    return (protocol, uri)
+
+def _get_envvar_uri(environment_var_name: str, default: str) -> Tuple[str, str]:
+    endpoint = os.getenv(environment_var_name, default)
+    res = _parse_string_to_protocol_and_basename(endpoint)
+    if (not res):
+        raise Exception(f'Error: invalid value for environment variable {environment_var_name} ({endpoint})')
+    return res
+
+def _get_kachery_hub_uri(with_protocol=True) -> str:
+    (protocol, uri) = _get_envvar_uri('KACHERY_HUB_API_URI', 'kacheryhub.org')
+    if (with_protocol):
+        return f'{protocol}://{uri}'
+    return uri
+
+def _get_bitwooder_uri(with_protocol=True) -> str:
+    (protocol, uri) = _get_envvar_uri('BITWOODER_API_URI', 'bitwooder.net')
+    if (with_protocol):
+        return f'{protocol}://{uri}'
+    return uri
 
 def _parse_kachery_uri(uri: str) -> Tuple[str, str, str, str, dict]:
     listA = uri.split('?')

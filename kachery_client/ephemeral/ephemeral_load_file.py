@@ -4,7 +4,7 @@ from typing import Union, Any
 import shutil
 import numpy as np
 from ..direct_client.DirectClient import _get_ephemeral_kachery_storage_dir
-from .._misc import _http_post_json, _parse_kachery_uri
+from .._misc import _http_post_json, _parse_kachery_uri, _get_kachery_hub_uri
 from .._temporarydirectory import TemporaryDirectory
 from ..direct_client.DirectClient import _concatenate_file_chunks, _http_get_file
 from .._local_kachery_storage import _compute_file_hash
@@ -75,7 +75,8 @@ def _get_node_config():
         'nodeId': public_key_hex,
         'signature': signature
     }
-    url = f'https://kacheryhub.org/api/kacheryNode'
+    endpoint = _get_kachery_hub_uri(with_protocol=True)
+    url = f'{endpoint}/api/kacheryNode'
     resp = _http_post_json(url, req)
     if not resp['found']:
         raise Exception('Node not found on kacheryhub')
