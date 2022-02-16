@@ -240,17 +240,18 @@ def watch_for_new_messages(subfeed_watches: Dict[str, dict], *, wait_msec, chann
 
 ################################################
 
-def set(key: Union[str, dict, list], value: Union[str, dict, list]):
+def set(key: Union[str, dict, list], value: Union[str, dict, list], update: bool=True):
     """Set a mutable value (only available locally)
 
     Args:
         key (Union[str, dict, list]): The key
         value (Union[str, dict, list]): The value
+        update (bool): If False does not overwrite existing value, and returns False if new value was not set. Default is True.
 
     Returns:
-        None
+        bool: whether the value was successfully set
     """
-    return _set(key=key, value=value)
+    return _set(key=key, value=value, update=update)
 
 def get(key: Union[str, dict, list]):
     """Get a mutable value (only available locally)
@@ -275,7 +276,7 @@ def get_string(key: Union[str, dict, list]):
     v = get(key)
     return str(v) if v is not None else None
 
-def delete(key: Union[str, dict, list], value: Union[str, dict, list]):
+def delete(key: Union[str, dict, list]):
     """Delete a mutable value (only available locally)
 
     Args:
