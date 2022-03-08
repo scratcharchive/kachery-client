@@ -84,7 +84,7 @@ def _get_node_config():
     _global['node_config'] = node_config
     return node_config
 
-def ephemeral_load_file(uri: str, *, local_only: bool=False) -> Union[str, None]:
+def ephemeral_load_file(uri: str, *, local_only: bool=False, channel: Union[str, None]=None) -> Union[str, None]:
     protocol, algorithm, sha1, additional_path, query = _parse_kachery_uri(uri)
     assert algorithm == 'sha1'
     kachery_storage_dir = _get_ephemeral_kachery_storage_dir()
@@ -95,18 +95,18 @@ def ephemeral_load_file(uri: str, *, local_only: bool=False) -> Union[str, None]
         return kachery_storage_file_name
     if 'manifest' in query:
         # The uri has a manifest. But let's first check whether the file is stored on the bucket in its entirety
-        aa = _load_direct_from_channel_buckets(sha1) # no manifest included in the uri
+        aa = _load_direct_from_channel_buckets(sha1, channel=channel) # no manifest included in the uri
         if aa is not None:
             return aa
         # The uri has a manifest, so we are going to load it in chunks
-        manifest = _ephemeral_load_json(f'sha1://{query["manifest"][0]}')
+        manifest = _ephemeral_load_json(f'sha1://{query["manifest"][0]}', channel=channel)
         # load the file chunks individually
         chunk_files = []
         for chunk in manifest['chunks']:
             chunk_sha1 = chunk['sha1']
             chunk_start = chunk['start']
             chunk_end = chunk['end']
-            chunk_fname = ephemeral_load_file(f'sha1://{chunk_sha1}?chunkOf={sha1}~{chunk_start}~{chunk_end}')
+            chunk_fname = ephemeral_load_file(f'sha1://{chunk_sha1}?chunkOf={sha1}~{chunk_start}~{chunk_end}', channel=channel)
             if chunk_fname is None:
                 return None
             chunk_files.append(chunk_fname)
@@ -121,7 +121,7 @@ def ephemeral_load_file(uri: str, *, local_only: bool=False) -> Union[str, None]
                 os.makedirs(kachery_storage_parent_dir)
             shutil.copyfile(tmp_fname, kachery_storage_file_name)
             return kachery_storage_file_name
-    bb = _load_direct_from_channel_buckets(sha1)
+    bb = _load_direct_from_channel_buckets(sha1, channel=channel)
     if bb is not None:
         return bb
     return None
@@ -134,7 +134,7 @@ def _ephemeral_load_json(uri: str) -> Union[None, dict, list, int, float]:
     with open(local_path, 'r') as f:
         return simplejson.load(f)
 
-def _load_direct_from_channel_buckets(sha1: str):
+def _load_direct_from_channel_buckets(sha1: str, *, channel: Union[str, None]=None):
     node_config = _get_node_config()
     kachery_storage_dir = _get_ephemeral_kachery_storage_dir()
     kachery_storage_parent_dir = f'{kachery_storage_dir}/sha1/{sha1[0]}{sha1[1]}/{sha1[2]}{sha1[3]}/{sha1[4]}{sha1[5]}'
@@ -143,18 +143,19 @@ def _load_direct_from_channel_buckets(sha1: str):
         tmp_fname = f'{tmpdir}/file.dat'
         for ch in node_config['channelMemberships']:
             channel_name = ch['channelName']
-            channel_bucket_base_url = ch['channelBucketBaseUrl']
-            file_url = f'{channel_bucket_base_url}/{channel_name}/sha1/{sha1[0]}{sha1[1]}/{sha1[2]}{sha1[3]}/{sha1[4]}{sha1[5]}/{sha1}'
-            try:
-                _http_get_file(file_url, tmp_fname)
-                downloaded = True
-            except:
-                downloaded = False
-            if downloaded:
-                if not os.path.exists(kachery_storage_parent_dir):
-                    os.makedirs(kachery_storage_parent_dir)
-                shutil.copyfile(tmp_fname, kachery_storage_file_name)
-                return kachery_storage_file_name
+            if channel is None or channel == channel_name:
+                channel_bucket_base_url = ch['channelBucketBaseUrl']
+                file_url = f'{channel_bucket_base_url}/{channel_name}/sha1/{sha1[0]}{sha1[1]}/{sha1[2]}{sha1[3]}/{sha1[4]}{sha1[5]}/{sha1}'
+                try:
+                    _http_get_file(file_url, tmp_fname)
+                    downloaded = True
+                except:
+                    downloaded = False
+                if downloaded:
+                    if not os.path.exists(kachery_storage_parent_dir):
+                        os.makedirs(kachery_storage_parent_dir)
+                    shutil.copyfile(tmp_fname, kachery_storage_file_name)
+                    return kachery_storage_file_name
     return None
 
 ed25519PubKeyPrefix = "302a300506032b6570032100"

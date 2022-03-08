@@ -14,7 +14,8 @@ from ._uri_handling import KacheryUri, _build_uri, _parse_uri
 def load_file(
     uri: str,
     dest: Union[str, None]=None,
-    local_only: bool=False
+    local_only: bool=False,
+    channel: Union[str, None]=None
 ) -> Union[str, None]:
     """Load a file either from local kachery storage or from a remote kachery node
 
@@ -26,9 +27,9 @@ def load_file(
     Returns:
         Union[str, None]: If found, the local path of the loaded file, else None
     """
-    return _load_file(uri=uri, dest=dest, local_only=local_only)
+    return _load_file(uri=uri, dest=dest, local_only=local_only, channel=channel)
 
-def load_bytes(uri: str, start: int, end: int, write_to_stdout=False) -> Union[bytes, None]:
+def load_bytes(uri: str, start: int, end: int, *, write_to_stdout=False, channel: Union[str, None]=None) -> Union[bytes, None]:
     """Load a subset of bytes from a file in local storage or from remote nodes in the kachery network
 
     Args:
@@ -39,9 +40,9 @@ def load_bytes(uri: str, start: int, end: int, write_to_stdout=False) -> Union[b
     Returns:
         Union[bytes, None]: The bytes if found, else None
     """
-    return _load_bytes(uri=uri, start=start, end=end, write_to_stdout=write_to_stdout)
+    return _load_bytes(uri=uri, start=start, end=end, write_to_stdout=write_to_stdout, channel=channel)
 
-def load_json(uri: str) -> Union[dict, None]:
+def load_json(uri: str, *, channel: Union[str, None]=None) -> Union[dict, None]:
     """Load an object (Python dict) either from local kachery storage or from a remote kachery node
 
     Args:
@@ -50,9 +51,9 @@ def load_json(uri: str) -> Union[dict, None]:
     Returns:
         Union[dict, None]: If found, the Python dict, else None
     """
-    return _load_json(uri=uri)
+    return _load_json(uri=uri, channel=channel)
 
-def load_text(uri: str) -> Union[str, None]:
+def load_text(uri: str, *, channel: Union[str, None]=None) -> Union[str, None]:
     """Load a text string either from local kachery storage or from a remote kachery node
 
     Args:
@@ -61,9 +62,9 @@ def load_text(uri: str) -> Union[str, None]:
     Returns:
         Union[str, None]: If found, the text string, else None
     """
-    return _load_text(uri=uri)
+    return _load_text(uri=uri, channel=channel)
 
-def load_npy(uri: str) -> Union[np.ndarray, None]:
+def load_npy(uri: str, *, channel: Union[str, None]=None) -> Union[np.ndarray, None]:
     """Load a Numpy array either from local kachery storage or from a remote kachery node
 
     Args:
@@ -72,9 +73,9 @@ def load_npy(uri: str) -> Union[np.ndarray, None]:
     Returns:
         Union[str, None]: If found, the Numpy array, else None
     """
-    return _load_npy(uri=uri)
+    return _load_npy(uri=uri, channel=channel)
 
-def load_pkl(uri: str) -> Union[Any, None]:
+def load_pkl(uri: str, *, channel: Union[str, None]=None) -> Union[Any, None]:
     """Load a Python item from a restricted pickle format either from local kachery storage or from a remote kachery node
 
     Args:
@@ -83,7 +84,7 @@ def load_pkl(uri: str) -> Union[Any, None]:
     Returns:
         Union[str, None]: If found, result, else None
     """
-    return _load_pkl(uri=uri)
+    return _load_pkl(uri=uri, channel=channel)
 
 def store_file(path: str, basename: Union[str, None]=None) -> str:
     """Store file in the local kachery storage (will therefore be available on the kachery network) and return a kachery URI
